@@ -45,7 +45,8 @@ public class PikminUI : MonoBehaviour
             progress += Time.deltaTime;
             if(progress > TIMETOBUILDPIKMIN)
             {
-                //todo: tell manager that pikmin build is done
+                Manager.Instance.MakeNewPikmin(type);
+
                 progress = 0;
                 queued--;
                 if (queued > 0)
@@ -70,7 +71,8 @@ public class PikminUI : MonoBehaviour
     {
         selected = !selected;
         Highlight.gameObject.SetActive(selected);
-        //todo: tell manager about your pikmin type and if it's selected or not
+
+        Manager.Instance.TogglePikminTypeSelected(type, selected);
     }
 }
 
