@@ -57,4 +57,11 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
-
+/UserSettings
+/Assets/StreamingAssets.meta
+/Assets/StreamingAssets/UnityServicesProjectConfiguration.json.meta
+/Assets/StreamingAssets/UnityServicesProjectConfiguration.json
+/ProjectSettings/CommonBurstAotSettings.json
+/ProjectSettings/BurstAotSettings_WebGL.json
+/Packages/packages-lock.json
+/obj/Debug/
