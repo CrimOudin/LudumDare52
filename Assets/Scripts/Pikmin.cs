@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -13,6 +14,8 @@ public class Pikmin : MonoBehaviour
     public int maxItemCount;
 
     public bool IsIdle { get; set; } = true;
+    private PikminState lastState = PikminState.Returning;
+    public PikminState state { get; set; } = PikminState.Returning; //start a pikmin walking to formation
 
     private ItemType? itemType;
     private int itemAmount;
@@ -31,17 +34,40 @@ public class Pikmin : MonoBehaviour
 
     void Update()
     {
-        if(isDead) return;
+        if (isDead) return;
 
-        if (IsIdle)
+        switch (state)
         {
-            CheckIfInRangeOfInteractable();
+            case PikminState.Idle:
+                CheckIfInRangeOfInteractable(false);
+                break;
+            case PikminState.Returning:
+                if(lastState != PikminState.Returning)
+                {
+                    ReturnToFormation();
+                }
+                break;
+            case PikminState.InFormation:
+                //continue to walk in formation, rotating to your target (if not a circle)
+                break;
+            case PikminState.Going:
+                //Shouldn't be able to receive any commands here, just continuing to follow the move command
+                break;
+            case PikminState.Attacking:
+                break;
+            case PikminState.Mining:
+                break;
         }
-        else
-        {
-            CheckIfStoppedMoving();
-        }
+        //if (IsIdle)
+        //{
+        //    CheckIfInRangeOfInteractable();
+        //}
+        //else
+        //{
+        //    CheckIfStoppedMoving();
+        //}
 
+        lastState = state;
     }
 
     private void CheckIfStoppedMoving()
@@ -50,7 +76,7 @@ public class Pikmin : MonoBehaviour
         {
             IsIdle = true;
             hasPath = false;
-            if(Manager.Instance.OlimarsPikmanFormation.PikminReturning.Contains(this))
+            if (Manager.Instance.OlimarsPikmanFormation.PikminReturning.Contains(this))
             {
                 Manager.Instance.OlimarsPikmanFormation.PikminReturning.Remove(this);
                 Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Add(this);
@@ -66,7 +92,7 @@ public class Pikmin : MonoBehaviour
         }
     }
 
-    private bool CheckIfInRangeOfInteractable()
+    private bool CheckIfInRangeOfInteractable(bool defaultReturn = true)
     {
         RaycastHit2D[] hit = Physics2D.CircleCastAll(transform.position, IdleInteractRange, Vector2.zero);
         foreach (var possibleInteractiveObject in hit)
@@ -80,7 +106,11 @@ public class Pikmin : MonoBehaviour
                 }
             }
         }
-        ReturnToFormation();
+
+        if (defaultReturn)
+            ReturnToFormation();
+
+
         return false;
     }
 
@@ -109,14 +139,19 @@ public class Pikmin : MonoBehaviour
 
     public void ReceiveCommand(Vector2 location)
     {
-        navMeshAgent.SetDestination(location);
-        hasPath = true;
-        Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
+        if (state == PikminState.InFormation)
+        {
+            state = PikminState.Going;
+            navMeshAgent.SetDestination(location);
+            hasPath = true;
+            Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
+        }
     }
 
     private void ReturnToFormation()
     {
-        if(isDead) return;
+        state = PikminState.Returning;
+        if (isDead) return;
         IsIdle = false;
         navMeshAgent.SetDestination(Manager.Instance.OlimarsPikmanFormation.gameObject.transform.position);
         hasPath = true;
@@ -133,7 +168,7 @@ public class Pikmin : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.gameObject.TryGetComponent(out Recall recall))
+        if (collision.GetComponent<Recall>() != null) //.gameObject.TryGetComponent(out Recall recall))
         {
             ReturnToFormation();
         }
@@ -162,4 +197,14 @@ public class Pikmin : MonoBehaviour
         yield return new WaitForSeconds(DeathAnimationTime);
         Destroy(gameObject);
     }
+}
+
+public enum PikminState
+{
+    Idle, //doing nothing, waiting for a command outside of your control
+    Returning, //Heading to formation
+    InFormation, //In the formation, will move according to formation rules
+    Going, //Moving, heading away from formation
+    Attacking, //Action from interacting with something that fights
+    Mining, //Action from interacting with mine-able things
 }
