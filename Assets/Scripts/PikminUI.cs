@@ -13,6 +13,9 @@ public class PikminUI : MonoBehaviour
     public RectTransform ProgressBaseTransform; //the background for the build progress bar
     public RectTransform ProgressTransform; //a transform that is left centered to show the progressImage where to be
 
+    public RectTransform Highlight;
+    public bool selected = false;
+
     public Text BuildText;
 
     public void SetType(PikminType pt)
@@ -60,6 +63,14 @@ public class PikminUI : MonoBehaviour
         }
 
         yield break;
+    }
+
+
+    public void ToggleHighlight()
+    {
+        selected = !selected;
+        Highlight.gameObject.SetActive(selected);
+        //todo: tell manager about your pikmin type and if it's selected or not
     }
 }
 
