@@ -6,9 +6,12 @@ public class Recall : MonoBehaviour
 {
     private float aliveTime = 0f;
     private float dyingTime = -1f;
+
+    private Vector3 initialScale;
     private void Awake()
     {
-        transform.localScale = new Vector3(0.25f, 0.25f, 1);
+        initialScale = transform.localScale;
+        transform.localScale = new Vector3(initialScale.x * 0.25f, initialScale.y * 0.25f, initialScale.z * 1);
         GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
     }
 
@@ -20,7 +23,7 @@ public class Recall : MonoBehaviour
             if (aliveTime < .75f)
             {
                 aliveTime += Time.deltaTime;
-                float scale = 0.25f + (0.75f * aliveTime * 1.333334f);
+                float scale = (initialScale.x * 0.25f) + (initialScale.x * 0.75f * aliveTime * 1.333334f);
                 transform.localScale = new Vector3(scale, scale, 1);
                 float huh = aliveTime * 1.333334f;
                 GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f + (0.5f * aliveTime * 1.3333334f));

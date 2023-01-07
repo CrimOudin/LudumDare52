@@ -12,11 +12,9 @@ public class Pikmin : MonoBehaviour
     public float DeathAnimationTime;
     public int maxItemCount;
 
-    public PikminFormation PikminFormation { get; set; }
-
     public bool IsIdle { get; set; } = true;
 
-    private ItemType itemType;
+    private ItemType? itemType;
     private int itemAmount;
 
     private int currentHealth;
@@ -41,17 +39,30 @@ public class Pikmin : MonoBehaviour
         }
         else
         {
-            CheckIfMoving();
+            CheckIfStoppedMoving();
         }
 
     }
 
-    private void CheckIfMoving()
+    private void CheckIfStoppedMoving()
     {
         if (hasPath && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance + .01f)
         {
             IsIdle = true;
             hasPath = false;
+            if(Manager.Instance.OlimarsPikmanFormation.PikminReturning.Contains(this))
+            {
+                Manager.Instance.OlimarsPikmanFormation.PikminReturning.Remove(this);
+                Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Add(this);
+
+                // Drop any items off to the player that this Pikmin had.
+                if (itemType.HasValue)
+                {
+                    Manager.Instance.totalItems[itemType.Value] += itemAmount;
+                    itemType = null;
+                    itemAmount = 0;
+                }
+            }
         }
     }
 
@@ -107,8 +118,9 @@ public class Pikmin : MonoBehaviour
     {
         if(isDead) return;
         IsIdle = false;
-        //TODO: add to pikimin returning list.
-        Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Add(this);
+        navMeshAgent.SetDestination(Manager.Instance.OlimarsPikmanFormation.gameObject.transform.position);
+        hasPath = true;
+        Manager.Instance.OlimarsPikmanFormation.PikminReturning.Add(this);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
