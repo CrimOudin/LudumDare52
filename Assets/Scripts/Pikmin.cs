@@ -21,10 +21,10 @@ public class Pikmin : MonoBehaviour
 
     private int currentHealth;
     private bool isDead;
-    private PikminActionState pikminActionState;
     private NavMeshAgent navMeshAgent;
+    private bool hasPath = false;
 
-    private void Start()
+    private void Awake()
     {
 
         navMeshAgent = GetComponent<NavMeshAgent>();
@@ -39,7 +39,21 @@ public class Pikmin : MonoBehaviour
         {
             CheckIfInRangeOfInteractable();
         }
+        else
+        {
+            CheckIfMoving();
+        }
 
+    }
+
+    private void CheckIfMoving()
+    {
+        hasPath |= navMeshAgent.hasPath;
+        if (hasPath && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance + .01f)
+        {
+            IsIdle = true;
+            hasPath = false;
+        }
     }
 
     private bool CheckIfInRangeOfInteractable()
@@ -84,12 +98,14 @@ public class Pikmin : MonoBehaviour
     public void ReceiveCommand(Vector2 location)
     {
         navMeshAgent.SetDestination(location);
+        Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
     }
 
     private void ReturnToFormation()
     {
         if(isDead) return;
         IsIdle = false;
+        //TODO: add to pikimin returning list.
         Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Add(this);
     }
 
@@ -132,11 +148,4 @@ public class Pikmin : MonoBehaviour
         yield return new WaitForSeconds(DeathAnimationTime);
         Destroy(gameObject);
     }
-}
-
-public enum PikminActionState
-{
-    NotThere,
-    There,
-
 }
