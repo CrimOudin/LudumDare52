@@ -9,9 +9,9 @@ public class PikminUI : MonoBehaviour
     private int queued = 0;
     private PikminType type;
 
-    public int TIMETOBUILDPIKMIN = 10;
-    public Transform ProgressTransform;
-    public Image ProgressImage;
+    public int TIMETOBUILDPIKMIN;
+    public RectTransform ProgressBaseTransform; //the background for the build progress bar
+    public RectTransform ProgressTransform; //a transform that is left centered to show the progressImage where to be
 
     public Text BuildText;
 
@@ -28,6 +28,7 @@ public class PikminUI : MonoBehaviour
         if(canAfford)
         {
             queued++;
+            BuildText.text = queued.ToString();
             if (queued == 1)
                 StartCoroutine(AnimateProgress());
         }
@@ -37,19 +38,34 @@ public class PikminUI : MonoBehaviour
     {
         while(queued > 0)
         {
-            yield return new WaitForSeconds(0.05f);
-            progress += 0.05f;
+            yield return new WaitForEndOfFrame();
+            progress += Time.deltaTime;
             if(progress > TIMETOBUILDPIKMIN)
             {
                 //todo: tell manager that pikmin build is done
                 progress = 0;
                 queued--;
+                if (queued > 0)
+                    BuildText.text = queued.ToString();
+                else
+                    BuildText.text = "Build";
+
+                ProgressTransform.sizeDelta = new Vector2(0, ProgressTransform.sizeDelta.y);
+            }
+            else
+            {
+                float percent = progress / TIMETOBUILDPIKMIN;
+                ProgressTransform.sizeDelta = new Vector2(ProgressBaseTransform.sizeDelta.x * percent, ProgressTransform.sizeDelta.y);
             }
         }
+
+        yield break;
     }
 }
 
 public enum PikminType
 {
-    Red
+    Red,
+    Yellow,
+    Blue
 }
