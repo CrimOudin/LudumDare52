@@ -29,7 +29,8 @@ public class Recaller : MonoBehaviour
 
         if(mouseDown)
         {
-            activeRecall.transform.position = Input.mousePosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0);
+            Vector3 mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            activeRecall.transform.position = new Vector3(mouse.x, mouse.y, activeRecall.transform.position.z);
         }
     }
 }

@@ -33,7 +33,7 @@ public class Recall : MonoBehaviour
             if (dyingTime * 5 >= 1)
                 Destroy(gameObject);
         }
-        transform.Rotate(new Vector3(0, 0, 0.75f));
+        transform.Rotate(new Vector3(0, 0, -1.75f));
     }
 
     public void Die()
