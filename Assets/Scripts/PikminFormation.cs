@@ -2,8 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Manager : MonoBehaviour
+public class PikminFormation : MonoBehaviour
 {
+    public List<Pikmin> PikminInFormation { get; set; }
+    public List<Pikmin> PikminReturning { get; set; }
+
     // Start is called before the first frame update
     void Start()
     {
