@@ -161,7 +161,7 @@ public class Pikmin : MonoBehaviour
 
         AddMeToFormation(); //does nothing if in formation already
 
-        if (((Vector2)transform.position - (Vector2)formationPositionTransform.position).magnitude <= 5f)
+        if (((Vector2)transform.position - (Vector2)formationPositionTransform.position).magnitude <= 20f)
             state = PikminState.InFormation;
 
         navMeshAgent.SetDestination(formationPositionTransform.position);// Manager.Instance.OlimarsPikmanFormation.gameObject.transform.position);
