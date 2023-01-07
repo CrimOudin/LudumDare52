@@ -8,6 +8,7 @@ public class Manager : MonoBehaviour
 {
     public static Manager Instance { get; set; }
 
+    public Dictionary<ItemType, int> totalItems { get; set; } = new Dictionary<ItemType, int>();
     PikminFormation olimarsPikmanFormation;
 
     // Start is called before the first frame update
@@ -23,26 +24,15 @@ public class Manager : MonoBehaviour
         }
     }
 
-    internal Pikmin GetNextAvailablePikmin()
+    internal Pikmin GetNextAvailablePikmin(List<PikminType> pikminTypesAllowed)
     {
-        throw new NotImplementedException();
-    }
-
-    private void OnMouseDown()
-    {
-        // Only right click
-        if (Input.GetMouseButtonDown(1)) 
+        foreach (Pikmin pikmin in olimarsPikmanFormation.PikminInFormation)
         {
-        
+            if(pikminTypesAllowed.Contains(pikmin.PikminType))
+            {
+                return pikmin;
+            }
         }
-    }
-
-    private void OnMouseUp()
-    {
-        // Only right click
-        if (Input.GetMouseButtonUp(1))
-        {
-
-        }
+        return null;
     }
 }
