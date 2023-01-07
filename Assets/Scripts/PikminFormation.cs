@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PikminFormation : MonoBehaviour
 {
-    public List<Pikmin> PikminInFormation { get; set; }
-    public List<Pikmin> PikminReturning { get; set; }
+    public List<Pikmin> PikminInFormation { get; set; } = new List<Pikmin>();
+    public List<Pikmin> PikminReturning { get; set; } = new List<Pikmin>();
 
     // Start is called before the first frame update
     void Start()

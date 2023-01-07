@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Pikmin : MonoBehaviour
 {
@@ -9,21 +10,24 @@ public class Pikmin : MonoBehaviour
     public int maxHealth;
     public PikminType PikminType;
     public float DeathAnimationTime;
+    public int maxItemCount;
 
     public PikminFormation PikminFormation { get; set; }
 
-    public bool IsIdle { get; set; }
+    public bool IsIdle { get; set; } = true;
 
-    Vector2 TargetLocation;
-    ItemType ItemType;
-    int itemAmount;
+    private ItemType itemType;
+    private int itemAmount;
 
     private int currentHealth;
     private bool isDead;
     private PikminActionState pikminActionState;
+    private NavMeshAgent navMeshAgent;
 
     private void Start()
     {
+
+        navMeshAgent = GetComponent<NavMeshAgent>();
         currentHealth = maxHealth;
     }
 
@@ -52,19 +56,41 @@ public class Pikmin : MonoBehaviour
                 }
             }
         }
+        ReturnToFormation();
         return false;
     }
 
-    private void PerformMiningTask(Vector2 minePosition)
+    /// Returns true if the mine was mined
+    public bool PerformMiningTask(Vector2 minePosition, ItemType resourceType)
     {
+        if (isDead) return false;
         if (Vector2.Distance(transform.position, minePosition) > ActionInteractionRange)
         {
-            // Move Towards
+            navMeshAgent.SetDestination(minePosition);
         }
         else
         {
-            // Mine 
+            navMeshAgent.SetDestination(transform.position);
+            if(itemAmount < maxItemCount)
+            {
+                itemType = resourceType;
+                itemAmount++;
+                return true;
+            }
         }
+        return false;
+    }
+
+    public void ReceiveCommand(Vector2 location)
+    {
+        navMeshAgent.SetDestination(location);
+    }
+
+    private void ReturnToFormation()
+    {
+        if(isDead) return;
+        IsIdle = false;
+        Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Add(this);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -72,6 +98,14 @@ public class Pikmin : MonoBehaviour
         if (collision.gameObject.CompareTag("Damage"))
         {
             TakeDamage(collision.gameObject.GetComponent<Damage>().Amount);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.gameObject.TryGetComponent(out Recall recall))
+        {
+            ReturnToFormation();
         }
     }
 
@@ -87,7 +121,8 @@ public class Pikmin : MonoBehaviour
 
     private void HandleDeath()
     {
-        // TODO: handle game reset/player respawn.
+        Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
+        Manager.Instance.OlimarsPikmanFormation.PikminReturning.Remove(this);
         isDead = true;
         StartCoroutine("Death");
     }

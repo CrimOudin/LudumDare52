@@ -9,7 +9,8 @@ public class Manager : MonoBehaviour
     public static Manager Instance { get; set; }
 
     public Dictionary<ItemType, int> totalItems { get; set; } = new Dictionary<ItemType, int>();
-    PikminFormation olimarsPikmanFormation;
+
+    public PikminFormation OlimarsPikmanFormation;
 
     // Start is called before the first frame update
     void Awake()
@@ -24,11 +25,11 @@ public class Manager : MonoBehaviour
         }
     }
 
-    internal Pikmin GetNextAvailablePikmin(List<PikminType> pikminTypesAllowed)
+    internal Pikmin GetNextAvailablePikmin(List<PikminType> pikminTypesAllowed = null)
     {
-        foreach (Pikmin pikmin in olimarsPikmanFormation.PikminInFormation)
+        foreach (Pikmin pikmin in OlimarsPikmanFormation.PikminInFormation)
         {
-            if(pikminTypesAllowed.Contains(pikmin.PikminType))
+            if(pikminTypesAllowed == null || pikminTypesAllowed.Contains(pikmin.PikminType))
             {
                 return pikmin;
             }
