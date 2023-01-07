@@ -48,7 +48,6 @@ public class Pikmin : MonoBehaviour
 
     private void CheckIfMoving()
     {
-        hasPath |= navMeshAgent.hasPath;
         if (hasPath && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance + .01f)
         {
             IsIdle = true;
@@ -81,11 +80,13 @@ public class Pikmin : MonoBehaviour
         if (Vector2.Distance(transform.position, minePosition) > ActionInteractionRange)
         {
             navMeshAgent.SetDestination(minePosition);
+            hasPath = true;
         }
         else
         {
             navMeshAgent.SetDestination(transform.position);
-            if(itemAmount < maxItemCount)
+            hasPath = true;
+            if (itemAmount < maxItemCount)
             {
                 itemType = resourceType;
                 itemAmount++;
@@ -98,6 +99,7 @@ public class Pikmin : MonoBehaviour
     public void ReceiveCommand(Vector2 location)
     {
         navMeshAgent.SetDestination(location);
+        hasPath = true;
         Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
     }
 
