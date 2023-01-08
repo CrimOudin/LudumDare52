@@ -20,6 +20,7 @@ public class SkullEnemy : Enemy
 
     private void Update()
     {
+        transform.position = new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y);
         state = EnemyState.Patrolling;
         if (state == EnemyState.Patrolling)
         {
