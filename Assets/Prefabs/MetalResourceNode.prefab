@@ -103,6 +103,7 @@ MonoBehaviour:
   ResourceType: 1
   ResourceTotalAmount: 10
   ResourceDepletedAnimationTime: 1
+  ResourcePrefab: {fileID: 8876941147402732025, guid: b233c2e2755259445b16512be45ab500, type: 3}
 --- !u!208 &6449076330413724772
 NavMeshObstacle:
   m_ObjectHideFlags: 0

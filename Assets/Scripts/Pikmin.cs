@@ -13,6 +13,7 @@ public class Pikmin : MonoBehaviour
     public PikminType PikminType;
     public float DeathAnimationTime;
     public int maxItemCount;
+    public Transform CarryLocation;
 
     private PikminState lastState = PikminState.Idle;
     public PikminState state { get; set; } = PikminState.Returning; //start a pikmin walking to formation
@@ -25,6 +26,9 @@ public class Pikmin : MonoBehaviour
     private NavMeshAgent navMeshAgent;
     private float lastTimeInteracted;
     private Collider2D collider;
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
+    private GameObject spawnedResourcePrefab;
 
     public Transform formationPositionTransform; //a transform set by the PikminFormation class to let this pikmin know exactly where to move to
 
@@ -37,6 +41,8 @@ public class Pikmin : MonoBehaviour
         navMeshAgent.updateRotation = false;
         currentHealth = maxHealth;
         collider = GetComponent<Collider2D>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -83,6 +89,7 @@ public class Pikmin : MonoBehaviour
                                                                                                                 //navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
         {
             state = PikminState.Idle;
+            animator.SetBool("IsWalking", false);
         }
     }
 
@@ -117,9 +124,21 @@ public class Pikmin : MonoBehaviour
             // To far away we need to move closer
             Vector3 closestPoint = Physics2D.ClosestPoint(resourceNode.GetComponent<Collider2D>().bounds.center, collider);
             navMeshAgent.SetDestination(new Vector3(closestPoint.x, closestPoint.y, 0));
+            animator.SetBool("IsWalking", true);
+            if(transform.position.x > resourceNode.transform.position.x)
+            {
+                //moving left
+                spriteRenderer.flipX = true;
+            }
+            else 
+            {
+                //moving right
+                spriteRenderer.flipX = false;
+            }
         }
         else if (Time.time - lastTimeInteracted > ActionInteractionDelay)
         {
+            animator.SetBool("IsWalking", false);
             // We are close enough and can take a mining action.
             lastTimeInteracted = Time.time;
             if (itemAmount < maxItemCount &&
@@ -127,6 +146,11 @@ public class Pikmin : MonoBehaviour
             {
                 itemType = resourceNode.ResourceType;
                 itemAmount++;
+                if (spawnedResourcePrefab == null)
+                {
+                    animator.SetBool("IsCarrying", true);
+                    spawnedResourcePrefab = Instantiate(resourceNode.ResourcePrefab, CarryLocation);
+                }
                 resourceNode.ResourceTotalAmount -= 1;
                 if (itemAmount == maxItemCount)
                 {
@@ -157,6 +181,17 @@ public class Pikmin : MonoBehaviour
             state = PikminState.Going;
             Manager.Instance.OlimarsPikmanFormation.RemovePikmin(this);
             navMeshAgent.SetDestination(new Vector3(location.x, location.y, 0));
+            animator.SetBool("IsWalking", true);
+            if (transform.position.x > location.x)
+            {
+                //moving left
+                spriteRenderer.flipX = true;
+            }
+            else
+            {
+                //moving right
+                spriteRenderer.flipX = false;
+            }
         }
     }
 
@@ -175,6 +210,8 @@ public class Pikmin : MonoBehaviour
                 Manager.Instance.AddResource(itemType.Value, itemAmount);
                 itemType = null;
                 itemAmount = 0;
+                animator.SetBool("IsCarrying", false);
+                Destroy(spawnedResourcePrefab);
             }
             state = PikminState.InFormation;
         }
@@ -183,6 +220,17 @@ public class Pikmin : MonoBehaviour
             state = PikminState.Returning;
             var position = formationPositionTransform.position;
             navMeshAgent.SetDestination(new Vector3(position.x, position.y, 0));// Manager.Instance.OlimarsPikmanFormation.gameObject.transform.position);
+            animator.SetBool("IsWalking", true);
+            if (transform.position.x > position.x)
+            {
+                //moving left
+                spriteRenderer.flipX = true;
+            }
+            else
+            {
+                //moving right
+                spriteRenderer.flipX = false;
+            }
         }
     }
 
@@ -191,7 +239,24 @@ public class Pikmin : MonoBehaviour
         formationPositionTransform = Manager.Instance.OlimarsPikmanFormation.GetPikminFormationPosition(this);
         var position = formationPositionTransform.position;
         if (Vector2.Distance(transform.position, position) >= 1f)
+        {
             navMeshAgent.SetDestination(new Vector3(position.x, position.y, 0));
+            animator.SetBool("IsWalking", true);
+            if (transform.position.x > position.x)
+            {
+                //moving left
+                spriteRenderer.flipX = true;
+            }
+            else
+            {
+                //moving right
+                spriteRenderer.flipX = false;
+            }
+        }
+        else
+        {
+            animator.SetBool("IsWalking", false);
+        }
     }
 
     public void AddMeToFormation()

@@ -103,6 +103,7 @@ MonoBehaviour:
   ResourceType: 0
   ResourceTotalAmount: 10
   ResourceDepletedAnimationTime: 1
+  ResourcePrefab: {fileID: 5061227647609518267, guid: a8d4c2e394e074141861273be95aa048, type: 3}
 --- !u!61 &4989755126901229680
 BoxCollider2D:
   m_ObjectHideFlags: 0

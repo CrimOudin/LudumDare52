@@ -8,6 +8,7 @@ public class ResourceNode : InteractiveObject
     public ItemType ResourceType;
     public int ResourceTotalAmount;
     public float ResourceDepletedAnimationTime;
+    public GameObject ResourcePrefab;
 
     private bool isDepleted = false;
 
