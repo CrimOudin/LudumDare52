@@ -46,7 +46,7 @@ public class Manager : MonoBehaviour
         totalItems.Add(ItemType.Metal, 0);
 
         FoodResourceUI.text = totalItems[ItemType.Food].ToString();
-        FoodResourceUI.text = totalItems[ItemType.Metal].ToString();
+        MetalResourceUI.text = totalItems[ItemType.Metal].ToString();
     }
 
     private void Update()
