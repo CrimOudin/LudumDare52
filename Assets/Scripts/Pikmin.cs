@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
@@ -14,6 +15,7 @@ public class Pikmin : MonoBehaviour
     public float DeathAnimationTime;
     public int maxItemCount;
     public Transform CarryLocation;
+    public GameObject ActionHandObject;
 
     private PikminState lastState = PikminState.Idle;
     public PikminState state { get; set; } = PikminState.Returning; //start a pikmin walking to formation
@@ -72,6 +74,10 @@ public class Pikmin : MonoBehaviour
                 {
                     PerformMiningTask(CurrentResourceNode);
                 }
+                else if(!ActionHandObject.activeSelf)
+                {
+                    ReturnToFormation();
+                }
                 break;
             case PikminState.Dead:
                 break;
@@ -85,8 +91,8 @@ public class Pikmin : MonoBehaviour
         if (navMeshAgent.hasPath &&
             !navMeshAgent.isPathStale &&
             navMeshAgent.pathStatus == NavMeshPathStatus.PathComplete &&
-            Vector3.Distance(navMeshAgent.pathEndPosition, transform.position) <= navMeshAgent.stoppingDistance)// &&
-                                                                                                                //navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
+            Vector3.Distance(navMeshAgent.pathEndPosition, transform.position) <= navMeshAgent.stoppingDistance &&
+            navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
         {
             state = PikminState.Idle;
             animator.SetBool("IsWalking", false);
@@ -95,9 +101,11 @@ public class Pikmin : MonoBehaviour
 
     private bool CheckIfInRangeOfInteractable(bool defaultReturn = true)
     {
-        RaycastHit2D[] hit = Physics2D.CircleCastAll(transform.position, IdleInteractRange, Vector2.zero);
-        foreach (var possibleInteractiveObject in hit)
+        RaycastHit2D[] hits = Physics2D.CircleCastAll(transform.position, IdleInteractRange, Vector2.zero);
+        hits = hits.OrderBy(x => Vector2.Distance(x.collider.gameObject.transform.position, transform.position)).ToArray();
+        foreach (var possibleInteractiveObject in hits)
         {
+
             if (possibleInteractiveObject.collider.gameObject.TryGetComponent(out InteractiveObject interactiveObject))
             {
                 if (interactiveObject.pikminTypesAllowed.Contains(PikminType))
@@ -119,10 +127,10 @@ public class Pikmin : MonoBehaviour
     {
         if (state == PikminState.Dead) return false;
 
-        if (Vector2.Distance(transform.position, resourceNode.transform.position) > ActionInteractionRange)
+        Vector3 closestPoint = Physics2D.ClosestPoint(collider.bounds.center, resourceNode.GetComponent<Collider2D>());
+        if (Vector2.Distance(transform.position, closestPoint) > ActionInteractionRange)
         {
             // To far away we need to move closer
-            Vector3 closestPoint = Physics2D.ClosestPoint(resourceNode.GetComponent<Collider2D>().bounds.center, collider);
             navMeshAgent.SetDestination(new Vector3(closestPoint.x, closestPoint.y, 0));
             animator.SetBool("IsWalking", true);
             if(transform.position.x > resourceNode.transform.position.x)
@@ -139,6 +147,10 @@ public class Pikmin : MonoBehaviour
         else if (Time.time - lastTimeInteracted > ActionInteractionDelay)
         {
             animator.SetBool("IsWalking", false);
+            animator.SetTrigger("Action");
+            ActionHandObject.SetActive(true);
+            ActionHandObject.transform.parent = null;
+            ActionHandObject.transform.position = closestPoint;
             // We are close enough and can take a mining action.
             lastTimeInteracted = Time.time;
             if (itemAmount < maxItemCount &&
@@ -155,7 +167,7 @@ public class Pikmin : MonoBehaviour
                 if (itemAmount == maxItemCount)
                 {
                     CurrentResourceNode = null;
-                    ReturnToFormation();
+                    //ReturnToFormation();
                 }
 
                 if (resourceNode.ResourceTotalAmount <= 0)
@@ -168,7 +180,7 @@ public class Pikmin : MonoBehaviour
             else
             {
                 CurrentResourceNode = null;
-                ReturnToFormation();
+                //ReturnToFormation();
             }
         }
         return false;
