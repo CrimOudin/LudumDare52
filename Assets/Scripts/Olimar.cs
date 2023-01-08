@@ -16,26 +16,13 @@ public class Olimar : MonoBehaviour
 
     void Update()
     {
-        float verticalMovement = 0;
-        float horizontalMovement = 0;
-        if(Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-        {
-            verticalMovement += 1;
-        }
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-        {
-            verticalMovement -= 1;
-        }
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-        {
-            horizontalMovement -= 1;
-        }
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-        {
-            horizontalMovement += 1;
-        }
+        float verticalMovement = Input.GetAxisRaw("Vertical");
+        float horizontalMovement = Input.GetAxisRaw("Horizontal");
+        
+        Vector3 movement = new Vector2(horizontalMovement, verticalMovement) * 1.4f;
+        if (movement.magnitude > 1.4f)
+            movement = movement.normalized * 1.4f;
 
-        Vector3 movement = new Vector2(horizontalMovement, verticalMovement);
         //transform.position += movement * speed * Time.deltaTime;
         // Removed rotation because the art asset didnt need it.
         if (movement != Vector3.zero)
