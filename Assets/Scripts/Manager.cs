@@ -57,7 +57,7 @@ public class Manager : MonoBehaviour
             RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
             if (hits.Any())
             {
-                foreach(RaycastHit hit in hits)
+                foreach (RaycastHit hit in hits)
                 {
                     if (hit.collider.gameObject.TryGetComponent<InteractiveObject>(out var interactiveObject))
                     {
@@ -77,7 +77,7 @@ public class Manager : MonoBehaviour
                             nextPikmin.ReceiveCommand(Camera.main.ScreenToWorldPoint(Input.mousePosition));
                         }
                     }
-                }                
+                }
             }
         }
     }
@@ -152,21 +152,29 @@ public class Manager : MonoBehaviour
         }
     }
 
-    public void SubtractResource(ItemType type, int amount)
+    public bool SubtractResource(ItemType type, int amount)
     {
-        totalItems[type] -= amount;
-
-        switch (type)
+        //return true or false based on if you could afford it
+        if (totalItems[type] >= amount)
         {
-            case ItemType.Food:
-                FoodResourceUI.text = totalItems[type].ToString();
-                break;
-            case ItemType.Metal:
-                MetalResourceUI.text = totalItems[type].ToString();
-                break;
-            default:
-                break;
+            totalItems[type] -= amount;
+
+            switch (type)
+            {
+                case ItemType.Food:
+                    FoodResourceUI.text = totalItems[type].ToString();
+                    break;
+                case ItemType.Metal:
+                    MetalResourceUI.text = totalItems[type].ToString();
+                    break;
+                default:
+                    break;
+            }
+
+            return true;
         }
+        else
+            return false;
     }
 
     public int GetResourceAmount(ItemType type)

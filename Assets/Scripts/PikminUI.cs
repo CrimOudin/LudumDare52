@@ -1,18 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.AI;
 using UnityEngine.UI;
 
 public class PikminUI : MonoBehaviour
 {
     private float progress = 0;
     private int queued = 0;
-    private PikminType type;
+    //private PikminType type;
+    private PikminInfo info;
 
-    public int TIMETOBUILDPIKMIN;
-    public int RedPikminFoodCost;
-    public int YellowPikminFoodCost;
-    public int BluePikminFoodCost;
+    public SpriteRenderer PortraitBackground;
+    public SpriteRenderer Portrait;
+    public Text FoodCostText;
+
     public RectTransform ProgressBaseTransform; //the background for the build progress bar
     public RectTransform ProgressTransform; //a transform that is left centered to show the progressImage where to be
 
@@ -23,42 +25,15 @@ public class PikminUI : MonoBehaviour
 
     public void SetType(PikminType pt)
     {
-        type = pt;
-        //todo: use type to update the image
+        info = PikminManager.Instance.GetPikminInfo(pt);
+        PortraitBackground.color = info.backgroundColor;
+        Portrait.sprite = info.uiPortraitSprite;
+        FoodCostText.text = info.foodCost.ToString();
     }
 
     public void MakePikmin()
     {
-        bool canAfford = false;
-        var amountOfFood = Manager.Instance.GetResourceAmount(ItemType.Food);
-        switch (type)
-        {
-            case PikminType.Red:
-                if (amountOfFood >= RedPikminFoodCost)
-                {
-                    Manager.Instance.SubtractResource(ItemType.Food, RedPikminFoodCost);
-                    canAfford = true;
-                }
-                break;
-            case PikminType.Yellow:
-                if (amountOfFood >= YellowPikminFoodCost)
-                {
-                    Manager.Instance.SubtractResource(ItemType.Food, YellowPikminFoodCost);
-                    canAfford = true;
-                }
-                break;
-            case PikminType.Blue:
-                if (amountOfFood >= BluePikminFoodCost)
-                {
-                    Manager.Instance.SubtractResource(ItemType.Food, BluePikminFoodCost);
-                    canAfford = true;
-                }
-                break;
-            default:
-                break;
-        }
-
-        if(canAfford)
+        if(Manager.Instance.SubtractResource(ItemType.Food, info.foodCost))
         {
             queued++;
             BuildText.text = queued.ToString();
@@ -73,9 +48,9 @@ public class PikminUI : MonoBehaviour
         {
             yield return new WaitForEndOfFrame();
             progress += Time.deltaTime;
-            if(progress > TIMETOBUILDPIKMIN)
+            if(progress > info.timeToBuild)
             {
-                Manager.Instance.MakeNewPikmin(type);
+                Manager.Instance.MakeNewPikmin(info.type);
 
                 progress = 0;
                 queued--;
@@ -88,7 +63,7 @@ public class PikminUI : MonoBehaviour
             }
             else
             {
-                float percent = progress / TIMETOBUILDPIKMIN;
+                float percent = progress / info.timeToBuild;
                 ProgressTransform.sizeDelta = new Vector2(ProgressBaseTransform.sizeDelta.x * percent, ProgressTransform.sizeDelta.y);
             }
         }
@@ -102,7 +77,7 @@ public class PikminUI : MonoBehaviour
         selected = !selected;
         Highlight.gameObject.SetActive(selected);
 
-        Manager.Instance.TogglePikminTypeSelected(type, selected);
+        Manager.Instance.TogglePikminTypeSelected(info.type, selected);
     }
 }
 
