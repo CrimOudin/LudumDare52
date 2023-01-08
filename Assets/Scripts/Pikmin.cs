@@ -8,22 +8,23 @@ public class Pikmin : MonoBehaviour
 {
     public float IdleInteractRange = 3f;
     public float ActionInteractionRange = 1f;
+    public float ActionInteractionDelay = 5f;
     public int maxHealth;
     public PikminType PikminType;
     public float DeathAnimationTime;
     public int maxItemCount;
 
-    public bool IsIdle { get; set; } = true;
     private PikminState lastState = PikminState.Idle;
     public PikminState state { get; set; } = PikminState.Returning; //start a pikmin walking to formation
+    public ResourceNode CurrentResourceNode { get; set; }
 
     private ItemType? itemType;
     private int itemAmount;
 
     private int currentHealth;
-    private bool isDead;
     private NavMeshAgent navMeshAgent;
-    private bool hasPath = false;
+    private float lastTimeInteracted;
+    private Collider2D collider;
 
     public Transform formationPositionTransform; //a transform set by the PikminFormation class to let this pikmin know exactly where to move to
 
@@ -31,12 +32,17 @@ public class Pikmin : MonoBehaviour
     {
 
         navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.updateUpAxis = false;
+        navMeshAgent.updatePosition = false;
+        navMeshAgent.updateRotation = false;
         currentHealth = maxHealth;
+        collider = GetComponent<Collider2D>();
     }
 
     void Update()
     {
-        if (isDead) return;
+        transform.position = new Vector2(navMeshAgent.nextPosition.x, navMeshAgent.nextPosition.y);
+        if (lastState == PikminState.Dead) return;
 
         switch (state)
         {
@@ -47,52 +53,36 @@ public class Pikmin : MonoBehaviour
                 ReturnToFormation();
                 break;
             case PikminState.InFormation:
-                if(lastState == PikminState.Returning)
-                {
-                    //todo: return any resources you were carrying
-                }
-                //continue to walk in formation, rotating to your target (if not a circle)
-                ReturnToFormation();
+                StayInFormation();
                 break;
             case PikminState.Going:
                 //Shouldn't be able to receive any commands here, just continuing to follow the move command
+                CheckForFinishedGoing();
                 break;
             case PikminState.Attacking:
                 break;
             case PikminState.Mining:
+                if (CurrentResourceNode != null)
+                {
+                    PerformMiningTask(CurrentResourceNode);
+                }
+                break;
+            case PikminState.Dead:
                 break;
         }
-        //if (IsIdle)
-        //{
-        //    CheckIfInRangeOfInteractable();
-        //}
-        //else
-        //{
-        //    CheckIfStoppedMoving();
-        //}
 
         lastState = state;
     }
 
-    private void CheckIfStoppedMoving()
+    private void CheckForFinishedGoing()
     {
-        if (hasPath && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance + .01f)
+        if (navMeshAgent.hasPath &&
+            !navMeshAgent.isPathStale &&
+            navMeshAgent.pathStatus == NavMeshPathStatus.PathComplete &&
+            Vector3.Distance(navMeshAgent.pathEndPosition, transform.position) <= navMeshAgent.stoppingDistance)// &&
+                                                                                                                //navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
         {
-            IsIdle = true;
-            hasPath = false;
-            if (Manager.Instance.OlimarsPikmanFormation.PikminReturning.Contains(this))
-            {
-                Manager.Instance.OlimarsPikmanFormation.PikminReturning.Remove(this);
-                Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Add(this);
-
-                // Drop any items off to the player that this Pikmin had.
-                if (itemType.HasValue)
-                {
-                    Manager.Instance.totalItems[itemType.Value] += itemAmount;
-                    itemType = null;
-                    itemAmount = 0;
-                }
-            }
+            state = PikminState.Idle;
         }
     }
 
@@ -114,28 +104,47 @@ public class Pikmin : MonoBehaviour
         if (defaultReturn)
             ReturnToFormation();
 
-
         return false;
     }
 
-    /// Returns true if the mine was mined
-    public bool PerformMiningTask(Vector2 minePosition, ItemType resourceType)
+    /// Returns true if a resource was mined
+    public bool PerformMiningTask(ResourceNode resourceNode)
     {
-        if (isDead) return false;
-        if (Vector2.Distance(transform.position, minePosition) > ActionInteractionRange)
+        if (state == PikminState.Dead) return false;
+
+        if (Vector2.Distance(transform.position, resourceNode.transform.position) > ActionInteractionRange)
         {
-            navMeshAgent.SetDestination(minePosition);
-            hasPath = true;
+            // To far away we need to move closer
+            Vector3 closestPoint = Physics2D.ClosestPoint(resourceNode.GetComponent<Collider2D>().bounds.center, collider);
+            navMeshAgent.SetDestination(new Vector3(closestPoint.x, closestPoint.y, 0));
         }
-        else
+        else if (Time.time - lastTimeInteracted > ActionInteractionDelay)
         {
-            navMeshAgent.SetDestination(transform.position);
-            hasPath = true;
-            if (itemAmount < maxItemCount)
+            // We are close enough and can take a mining action.
+            lastTimeInteracted = Time.time;
+            if (itemAmount < maxItemCount &&
+                resourceNode.ResourceTotalAmount > 0)
             {
-                itemType = resourceType;
+                itemType = resourceNode.ResourceType;
                 itemAmount++;
+                resourceNode.ResourceTotalAmount -= 1;
+                if (itemAmount == maxItemCount)
+                {
+                    CurrentResourceNode = null;
+                    ReturnToFormation();
+                }
+
+                if (resourceNode.ResourceTotalAmount <= 0)
+                {
+                    resourceNode.HandleDepleted();
+                }
+
                 return true;
+            }
+            else
+            {
+                CurrentResourceNode = null;
+                ReturnToFormation();
             }
         }
         return false;
@@ -147,26 +156,42 @@ public class Pikmin : MonoBehaviour
         {
             state = PikminState.Going;
             Manager.Instance.OlimarsPikmanFormation.RemovePikmin(this);
-            navMeshAgent.SetDestination(location);
-            hasPath = true;
-            //Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
+            navMeshAgent.SetDestination(new Vector3(location.x, location.y, 0));
         }
     }
 
     private void ReturnToFormation()
     {
-        state = PikminState.Returning;
-        if (isDead) return;
-        IsIdle = false;
+        if (state == PikminState.Dead) return;
+
 
         AddMeToFormation(); //does nothing if in formation already
 
-        if (((Vector2)transform.position - (Vector2)formationPositionTransform.position).magnitude <= 20f)
+        if (Vector2.Distance(transform.position, formationPositionTransform.position) <= 20f)
+        {
+            formationPositionTransform = null;
+            if (itemType.HasValue)
+            {
+                Manager.Instance.AddResource(itemType.Value, itemAmount);
+                itemType = null;
+                itemAmount = 0;
+            }
             state = PikminState.InFormation;
+        }
+        else
+        {
+            state = PikminState.Returning;
+            var position = formationPositionTransform.position;
+            navMeshAgent.SetDestination(new Vector3(position.x, position.y, 0));// Manager.Instance.OlimarsPikmanFormation.gameObject.transform.position);
+        }
+    }
 
-        navMeshAgent.SetDestination(formationPositionTransform.position);// Manager.Instance.OlimarsPikmanFormation.gameObject.transform.position);
-        hasPath = true;
-        Manager.Instance.OlimarsPikmanFormation.PikminReturning.Add(this);
+    private void StayInFormation()
+    {
+        formationPositionTransform = Manager.Instance.OlimarsPikmanFormation.GetPikminFormationPosition(this);
+        var position = formationPositionTransform.position;
+        if (Vector2.Distance(transform.position, position) >= 1f)
+            navMeshAgent.SetDestination(new Vector3(position.x, position.y, 0));
     }
 
     public void AddMeToFormation()
@@ -206,12 +231,10 @@ public class Pikmin : MonoBehaviour
     private void HandleDeath()
     {
         Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
-        Manager.Instance.OlimarsPikmanFormation.PikminReturning.Remove(this);
-        isDead = true;
         StartCoroutine("Death");
     }
 
-    IEnumerable Death()
+    private IEnumerator Death()
     {
         yield return new WaitForSeconds(DeathAnimationTime);
         Destroy(gameObject);
@@ -226,4 +249,5 @@ public enum PikminState
     Going, //Moving, heading away from formation
     Attacking, //Action from interacting with something that fights
     Mining, //Action from interacting with mine-able things
+    Dead //If you died 
 }

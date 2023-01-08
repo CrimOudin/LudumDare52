@@ -6,7 +6,6 @@ using UnityEngine;
 public class PikminFormation : MonoBehaviour
 {
     public List<Pikmin> PikminInFormation { get; set; } = new List<Pikmin>();
-    public List<Pikmin> PikminReturning { get; set; } = new List<Pikmin>();
     public GameObject Follow;
 
     private List<Transform> formationTransforms = new List<Transform>();
@@ -54,15 +53,32 @@ public class PikminFormation : MonoBehaviour
         else return null;
     }
 
+
+    public Transform GetPikminFormationPosition(Pikmin pikmin)
+    {
+        var count = 0;
+        foreach(var pikminFollowing in PikminInFormation)
+        {
+            if(pikminFollowing == pikmin)
+            {
+                return formationTransforms[count];
+            }
+            count++;
+        }
+        return null;
+    }
+
     public void RemovePikmin(Pikmin toremove)
     {
         int index = PikminInFormation.IndexOf(toremove);
-        PikminInFormation.Remove(toremove);
-        toremove.formationPositionTransform = null;
-        //take every pikmin that is ahead of this pikmin and move them up in the formation one to cover the spot that is now empty
-        for (int i = index; i < PikminInFormation.Count; i++)
+        if (PikminInFormation.Remove(toremove))
         {
-            PikminInFormation[i].formationPositionTransform = formationTransforms[i];
+            toremove.formationPositionTransform = null;
+            //take every pikmin that is ahead of this pikmin and move them up in the formation one to cover the spot that is now empty
+            for (int i = index; i < PikminInFormation.Count; i++)
+            {
+                PikminInFormation[i].formationPositionTransform = formationTransforms[i];
+            }
         }
     }
 }

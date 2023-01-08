@@ -4,11 +4,14 @@ public class Olimar : MonoBehaviour
 {
     [SerializeField] private float speed;
     [SerializeField] private int maxHealth;
+    [SerializeField] private float maxSpeed;
     private int currentHealth;
+    private Rigidbody2D rigidBody;
 
     private void Start()
     {
-        currentHealth = maxHealth;
+        currentHealth = maxHealth; 
+        rigidBody = GetComponent<Rigidbody2D>();
     }
 
     void Update()
@@ -33,15 +36,23 @@ public class Olimar : MonoBehaviour
         }
 
         Vector3 movement = new Vector2(horizontalMovement, verticalMovement);
-        transform.position += movement * speed * Time.deltaTime;
-
+        //transform.position += movement * speed * Time.deltaTime;
         // Removed rotation because the art asset didnt need it.
-        //if (movement != Vector3.zero)
-        //{
-        //    var direction = -movement;
-        //    float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        //    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-        //}
+        if (movement != Vector3.zero)
+        {
+            rigidBody.AddForce(movement * speed * Time.deltaTime, ForceMode2D.Impulse);
+            if (rigidBody.velocity.magnitude > maxSpeed)
+            {
+                rigidBody.velocity = rigidBody.velocity.normalized * maxSpeed;
+            }
+            //    var direction = -movement;
+            //    float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            //    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        }
+        else
+        {
+            rigidBody.velocity = Vector3.zero;
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

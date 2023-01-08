@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4101706371534102656}
   - component: {fileID: 4101706371534102658}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BuildProgressBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 4101706371557914730}
   - component: {fileID: 4101706371557914729}
   - component: {fileID: 4101706371557914728}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BuildProgress
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -200,7 +200,7 @@ GameObject:
   - component: {fileID: 4101706371581387249}
   - component: {fileID: 4101706371581387251}
   - component: {fileID: 4101706371581387250}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BuildText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -214,12 +214,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4101706371581387248}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4101706372832224896}
+  m_Father: {fileID: 4101706372096420014}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -281,7 +281,8 @@ GameObject:
   - component: {fileID: 4101706371870450802}
   - component: {fileID: 4101706371870450801}
   - component: {fileID: 2297486103934890482}
-  m_Layer: 0
+  - component: {fileID: 7546073615659485739}
+  m_Layer: 5
   m_Name: ToggleSelect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -434,6 +435,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
+--- !u!225 &7546073615659485739
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4101706371870450807}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &4101706372096420013
 GameObject:
   m_ObjectHideFlags: 0
@@ -446,7 +459,7 @@ GameObject:
   - component: {fileID: 4101706372096420008}
   - component: {fileID: 4101706372096420015}
   - component: {fileID: 4101706372096420009}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: ToggleBuild
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -465,7 +478,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4101706372832224896}
+  - {fileID: 4101706371581387249}
   m_Father: {fileID: 4101706373292598267}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -609,7 +622,7 @@ GameObject:
   - component: {fileID: 4101706372216919664}
   - component: {fileID: 4101706372216919666}
   - component: {fileID: 4101706372216919665}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -684,7 +697,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4101706372601545022}
   - component: {fileID: 4101706372601545023}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -734,66 +747,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!1 &4101706372832224903
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4101706372832224896}
-  - component: {fileID: 4101706372832224897}
-  m_Layer: 0
-  m_Name: Canvas
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &4101706372832224896
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4101706372832224903}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4101706371581387249}
-  m_Father: {fileID: 4101706372096420014}
-  m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 80, y: 45}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!223 &4101706372832224897
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4101706372832224903}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 2
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 0
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_AdditionalShaderChannelsFlag: 0
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
-  m_TargetDisplay: 0
 --- !u!1 &4101706373292598266
 GameObject:
   m_ObjectHideFlags: 0
@@ -804,7 +757,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4101706373292598267}
   - component: {fileID: 4101706373292598260}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: PikminTypeUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -847,6 +800,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TIMETOBUILDPIKMIN: 5
+  RedPikminFoodCost: 10
+  YellowPikminFoodCost: 20
+  BluePikminFoodCost: 15
   ProgressBaseTransform: {fileID: 4101706371534102656}
   ProgressTransform: {fileID: 4101706371557914735}
   Highlight: {fileID: 7315185434472786046}
@@ -862,7 +818,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7315185434472786046}
   - component: {fileID: 7405955270133953167}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Highlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}

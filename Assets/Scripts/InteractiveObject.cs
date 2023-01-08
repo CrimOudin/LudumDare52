@@ -7,12 +7,12 @@ public abstract class InteractiveObject : MonoBehaviour
 
     private void OnMouseDown()
     {
-        OnPikminInteract(Manager.Instance.GetNextAvailablePikmin());// pikminTypesAllowed));
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        
+        //Debug.Log("InteraciveObject Clicked");
+        //var nextAvailablePikmin = Manager.Instance.GetNextAvailablePikmin(pikminTypesAllowed);
+        //if(nextAvailablePikmin != null)
+        //{
+        //    OnPikminInteract(nextAvailablePikmin);
+        //}
     }
 
     public abstract void OnPikminInteract(Pikmin pikmin);

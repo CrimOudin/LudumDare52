@@ -10,6 +10,9 @@ public class PikminUI : MonoBehaviour
     private PikminType type;
 
     public int TIMETOBUILDPIKMIN;
+    public int RedPikminFoodCost;
+    public int YellowPikminFoodCost;
+    public int BluePikminFoodCost;
     public RectTransform ProgressBaseTransform; //the background for the build progress bar
     public RectTransform ProgressTransform; //a transform that is left centered to show the progressImage where to be
 
@@ -26,8 +29,35 @@ public class PikminUI : MonoBehaviour
 
     public void MakePikmin()
     {
-        //todo: check resources and take them if you can afford
-        bool canAfford = true;
+        bool canAfford = false;
+        var amountOfFood = Manager.Instance.GetResourceAmount(ItemType.Food);
+        switch (type)
+        {
+            case PikminType.Red:
+                if (amountOfFood >= RedPikminFoodCost)
+                {
+                    Manager.Instance.SubtractResource(ItemType.Food, RedPikminFoodCost);
+                    canAfford = true;
+                }
+                break;
+            case PikminType.Yellow:
+                if (amountOfFood >= YellowPikminFoodCost)
+                {
+                    Manager.Instance.SubtractResource(ItemType.Food, YellowPikminFoodCost);
+                    canAfford = true;
+                }
+                break;
+            case PikminType.Blue:
+                if (amountOfFood >= BluePikminFoodCost)
+                {
+                    Manager.Instance.SubtractResource(ItemType.Food, BluePikminFoodCost);
+                    canAfford = true;
+                }
+                break;
+            default:
+                break;
+        }
+
         if(canAfford)
         {
             queued++;
