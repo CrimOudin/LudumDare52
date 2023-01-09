@@ -8102,7 +8102,7 @@ MonoBehaviour:
   state: 0
   attackInfo:
     attackRange: 200
-    attackCooldown: 1
+    attackCooldown: 3
     state: 0
     currentCooldown: 3
     attackWindupTime: 1.2
@@ -8115,11 +8115,13 @@ MonoBehaviour:
     currentPatrolPosition: {x: 0, y: 0}
     patrolDuration: 6
     patrolVariance: 2
-    patrolRadius: 500
+    patrolRadius: 400
   currentAggroTarget: {fileID: 0}
   attackableThings: []
   tunnelVision: 0
   canGiveMoveCommand: 1
+  returnAfterAttack: 0
+  deleteme: 0
 --- !u!4 &2080299451 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4989755126901229693, guid: 27cea91ee42c50947af2ad8e61112df8, type: 3}

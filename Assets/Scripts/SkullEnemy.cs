@@ -7,6 +7,7 @@ public class SkullEnemy : Enemy
 {
     public override int health => 420;
 
+    public bool deleteme = false;
 
     private void Awake()
     {
@@ -60,7 +61,6 @@ public class SkullEnemy : Enemy
                 if (attackInfo.attackGO.GetComponent<BoxCollider2D>().isActiveAndEnabled && attackInfo.currentCooldown >= attackInfo.attackDuration)
                 {
                     attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = false;
-                    GetComponent<NavMeshAgent>().isStopped = false;
                 }
             }
         }
@@ -99,7 +99,16 @@ public class SkullEnemy : Enemy
         attackInfo.currentCooldown = 0;
         GetComponent<Animator>().SetBool("Attacking", false);
         attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = false;
-        state = EnemyState.Aggro;
+        GetComponent<NavMeshAgent>().isStopped = false;
+
+        if (returnAfterAttack)
+        {
+            state = EnemyState.Returning;
+            MoveTo(patrolInfo.startLoc);
+            returnAfterAttack = false;
+        }
+        else
+            state = EnemyState.Aggro;
     }
 
     public override void Patrol()
@@ -117,12 +126,23 @@ public class SkullEnemy : Enemy
         }
         else
         {
-            patrolInfo.activePatrolTime = -1;
-            patrolInfo.current = 0;
-            float angleInRad = UnityEngine.Random.Range(0, 2 * Mathf.PI);
-            float distance = UnityEngine.Random.Range(0, patrolInfo.patrolRadius);
-            Vector2 delta = new Vector2(Mathf.Cos(angleInRad), Mathf.Sin(angleInRad));
-            MoveTo(patrolInfo.startLoc + distance * delta);
+            if (!deleteme)
+            {
+                deleteme = true;
+                patrolInfo.activePatrolTime = -1;
+                patrolInfo.current = 0;
+                float angleInRad = UnityEngine.Random.Range(0, 2 * Mathf.PI);
+                float distance = UnityEngine.Random.Range(0, patrolInfo.patrolRadius);
+                Vector2 delta = new Vector2(Mathf.Cos(angleInRad), Mathf.Sin(angleInRad));
+                MoveTo(patrolInfo.startLoc + distance * delta);
+            }
+            else
+            {
+                deleteme = false;
+                patrolInfo.activePatrolTime = -1;
+                patrolInfo.current = 0;
+                MoveTo(patrolInfo.startLoc);
+            }
         }
     }
 }
