@@ -408,7 +408,10 @@ public class Pikmin : MonoBehaviour
         //If you're not already in the formation, tell the formation you're now in formation, and have it return where you should go to.
         //Otherwise do nothing
         if (formationPositionTransform == null)
+        {
+            SFX.PlayRecallSound();
             formationPositionTransform = Manager.Instance.OlimarsPikminFormation.AddPikmin(this);
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -436,7 +439,6 @@ public class Pikmin : MonoBehaviour
             }
             else if (state != PikminState.Growing)
             {
-                SFX.PlayRecallSound();
                 ReturnToFormation();
             }
         }
@@ -450,7 +452,6 @@ public class Pikmin : MonoBehaviour
     {
         animator.SetTrigger("Sprout");
         yield return new WaitForSeconds(1.5f);
-        SFX.PlayRecallSound();
         ReturnToFormation();
     }
 

@@ -48,8 +48,10 @@ public class DialogDisplay : MonoBehaviour
                     wasSkipped = true;
                     skip = false;
                 }
-
-                Text.text = text.Substring(0, index);
+                string copy = text;
+                copy = copy.Insert(index, "<color=#ffffff00>");
+                copy += "</color>";
+                Text.text = copy;// text.Substring(0, index);
                 yield return new WaitForSeconds(0.03f + UnityEngine.Random.value * 0.01f);
                 index++;
             }
