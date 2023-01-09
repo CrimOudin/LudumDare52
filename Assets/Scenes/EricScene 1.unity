@@ -3598,6 +3598,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2076981581, guid: 682dda10f0647a64ea01f72bdebd9401, type: 3}
+      propertyPath: pikminTypesAllowed.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2076981581, guid: 682dda10f0647a64ea01f72bdebd9401, type: 3}
+      propertyPath: pikminTypesAllowed.Array.data[1]
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2076981581, guid: 682dda10f0647a64ea01f72bdebd9401, type: 3}
+      propertyPath: pikminTypesAllowed.Array.data[2]
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3767300295100080403, guid: 682dda10f0647a64ea01f72bdebd9401, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -6205,6 +6217,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7219795642618087478, guid: 78ea85899382ab349a58d06adce94488, type: 3}
+      propertyPath: PikminInfos.Array.data[0].Damage
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7219795642618087478, guid: 78ea85899382ab349a58d06adce94488, type: 3}
+      propertyPath: PikminInfos.Array.data[2].Damage
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7219795642618087478, guid: 78ea85899382ab349a58d06adce94488, type: 3}
       propertyPath: PikminInfos.Array.data[0].backgroundColor.b
       value: 0.4345172
       objectReference: {fileID: 0}
@@ -8583,6 +8603,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2886be0a052da4419c52d17c502772c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pikminTypesAllowed: 000000000100000002000000
+  health: 50
   state: 0
   currentAggroTarget: {fileID: 0}
   attackableThings: []

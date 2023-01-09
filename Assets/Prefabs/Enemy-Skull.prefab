@@ -484,6 +484,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 304dc10e30fa6d344b6329ac6d1ad946, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pikminTypesAllowed: 000000000100000002000000
+  health: 0
   state: 0
   currentAggroTarget: {fileID: 0}
   attackableThings: []

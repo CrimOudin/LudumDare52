@@ -5,8 +5,6 @@ using UnityEngine.AI;
 
 public class EyeplantEnemy : Enemy
 {
-    public override int health => 69;
-
     private void Awake()
     {
         attackInfo.attackGO.GetComponent<OneTimeAnimationHandler>().endAction = AttackAnimationComplete;
@@ -110,5 +108,12 @@ public class EyeplantEnemy : Enemy
     public override void CheckForReturnDone()
     {
         state = EnemyState.Patrolling;
+    }
+
+    public override void OnPikminInteract(Pikmin pikmin)
+    {
+        pikmin.CurrentEnemy = this;
+        pikmin.state = PikminState.Attacking;
+        pikmin.PerformAttackTask(this);
     }
 }
