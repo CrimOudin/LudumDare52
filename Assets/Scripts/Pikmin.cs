@@ -409,6 +409,7 @@ public class Pikmin : MonoBehaviour
     private void HandleDeath()
     {
         Manager.Instance.OlimarsPikmanFormation.RemovePikmin(this);
+        Destroy(ActionHandObject);
         StartCoroutine("Death");
     }
 
