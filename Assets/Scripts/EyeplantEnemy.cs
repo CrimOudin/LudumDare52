@@ -5,9 +5,12 @@ using UnityEngine.AI;
 
 public class EyeplantEnemy : Enemy
 {
+    bool alive = true;
+
     private void Awake()
     {
         attackInfo.attackGO.GetComponent<OneTimeAnimationHandler>().endAction = AttackAnimationComplete;
+        attackInfo.attackGO.GetComponent<OneTimeAnimationHandler>().deathEndAction = DeathAnimationComplete;
         patrolInfo.startLoc = transform.position;
 
         GetComponent<NavMeshAgent>().updateUpAxis = false;
@@ -19,19 +22,22 @@ public class EyeplantEnemy : Enemy
 
     private void Update()
     {
-        transform.position = new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y);
+        if (alive)
+        {
+            transform.position = new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y);
 
-        if (state == EnemyState.Patrolling)
-        {
-            Patrol();
-        }
-        else if (state == EnemyState.Aggro || state == EnemyState.Attacking)
-        {
-            Attack();
-        }
-        else if (state == EnemyState.Returning)
-        {
-            CheckForReturnDone();
+            if (state == EnemyState.Patrolling)
+            {
+                Patrol();
+            }
+            else if (state == EnemyState.Aggro || state == EnemyState.Attacking)
+            {
+                Attack();
+            }
+            else if (state == EnemyState.Returning)
+            {
+                CheckForReturnDone();
+            }
         }
     }
 
@@ -98,6 +104,12 @@ public class EyeplantEnemy : Enemy
         }
         else
             state = EnemyState.Aggro;
+    }
+
+    public void DeathAnimationComplete()
+    {
+        alive = false;
+        attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", false);
     }
 
     public override void Patrol()
