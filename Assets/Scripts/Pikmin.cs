@@ -1,24 +1,20 @@
-using System;
 using System.Collections;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class Pikmin : MonoBehaviour
 {
-    public float IdleInteractRange = 3f;
-    public float ActionInteractionRange = 1f;
-    public float ActionInteractionDelay = 5f;
-    public int maxHealth;
     public PikminType PikminType;
-    public float DeathAnimationTime;
-    public int maxItemCount;
     public Transform CarryLocation;
     public GameObject ActionHandObject;
+    public GameObject ProgressBarPrefab;
 
-    private PikminState lastState = PikminState.Idle;
-    public PikminState state { get; set; } = PikminState.Returning; //start a pikmin walking to formation
+    private PikminInfo info;
+
+    private PikminState lastState = PikminState.Growing;
+    public PikminState state { get; set; } = PikminState.Growing; //start a pikmin walking to formation
     public ResourceNode CurrentResourceNode { get; set; }
 
     private ItemType? itemType;
@@ -31,29 +27,42 @@ public class Pikmin : MonoBehaviour
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private GameObject spawnedResourcePrefab;
+    private float timeSpawned;
+    private Slider progressBar;
 
     public Transform formationPositionTransform; //a transform set by the PikminFormation class to let this pikmin know exactly where to move to
 
     private void Awake()
     {
-
+        info = PikminManager.Instance.GetPikminInfo(PikminType);
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.updateUpAxis = false;
         navMeshAgent.updatePosition = false;
         navMeshAgent.updateRotation = false;
-        currentHealth = maxHealth;
+        currentHealth = info.maxHealth;
         collider = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
+    private void Start()
+    {
+        timeSpawned = Time.time;
+        var bar = Instantiate(ProgressBarPrefab, transform);
+        progressBar = bar.transform.GetChild(0).GetComponent<Slider>();
+    }
+
     void Update()
     {
         transform.position = new Vector2(navMeshAgent.nextPosition.x, navMeshAgent.nextPosition.y);
-        if (lastState == PikminState.Dead) return;
 
         switch (state)
         {
+            case PikminState.Growing:
+                UpdateGrowthProgress();
+                break;
+            case PikminState.DoneGrowing:
+                break;
             case PikminState.Idle:
                 CheckIfInRangeOfInteractable(false);
                 break;
@@ -86,6 +95,22 @@ public class Pikmin : MonoBehaviour
         lastState = state;
     }
 
+    private void UpdateGrowthProgress()
+    {
+        var timeSinceSpawn = Time.time - timeSpawned;
+        if (timeSinceSpawn > info.timeToBuild)
+        {
+            animator.SetBool("IsGrown", true);
+            Destroy(progressBar.transform.parent.gameObject);
+            state = PikminState.DoneGrowing;
+        }
+        else
+        {
+            float percent = timeSinceSpawn / info.timeToBuild;
+            progressBar.value = percent;
+        }
+    }
+
     private void CheckForFinishedGoing()
     {
         if (navMeshAgent.hasPath &&
@@ -101,7 +126,7 @@ public class Pikmin : MonoBehaviour
 
     private bool CheckIfInRangeOfInteractable(bool defaultReturn = true)
     {
-        RaycastHit2D[] hits = Physics2D.CircleCastAll(transform.position, IdleInteractRange, Vector2.zero);
+        RaycastHit2D[] hits = Physics2D.CircleCastAll(transform.position, info.IdleInteractRange, Vector2.zero);
         hits = hits.OrderBy(x => Vector2.Distance(x.collider.gameObject.transform.position, transform.position)).ToArray();
         foreach (var possibleInteractiveObject in hits)
         {
@@ -128,7 +153,7 @@ public class Pikmin : MonoBehaviour
         if (state == PikminState.Dead) return false;
 
         Vector3 closestPoint = Physics2D.ClosestPoint(collider.bounds.center, resourceNode.GetComponent<Collider2D>());
-        if (Vector2.Distance(transform.position, closestPoint) > ActionInteractionRange)
+        if (Vector2.Distance(transform.position, closestPoint) > info.ActionInteractionRange)
         {
             // To far away we need to move closer
             navMeshAgent.SetDestination(new Vector3(closestPoint.x, closestPoint.y, 0));
@@ -144,7 +169,7 @@ public class Pikmin : MonoBehaviour
                 spriteRenderer.flipX = false;
             }
         }
-        else if (Time.time - lastTimeInteracted > ActionInteractionDelay)
+        else if (Time.time - lastTimeInteracted > info.ActionInteractionDelay)
         {
             animator.SetBool("IsWalking", false);
             animator.SetTrigger("Action");
@@ -153,7 +178,7 @@ public class Pikmin : MonoBehaviour
             ActionHandObject.transform.position = closestPoint;
             // We are close enough and can take a mining action.
             lastTimeInteracted = Time.time;
-            if (itemAmount < maxItemCount &&
+            if (itemAmount < info.maxItemCount &&
                 resourceNode.ResourceTotalAmount > 0)
             {
                 itemType = resourceNode.ResourceType;
@@ -164,7 +189,7 @@ public class Pikmin : MonoBehaviour
                     spawnedResourcePrefab = Instantiate(resourceNode.ResourcePrefab, CarryLocation);
                 }
                 resourceNode.ResourceTotalAmount -= 1;
-                if (itemAmount == maxItemCount)
+                if (itemAmount == info.maxItemCount)
                 {
                     CurrentResourceNode = null;
                     //ReturnToFormation();
@@ -211,7 +236,7 @@ public class Pikmin : MonoBehaviour
     {
         if (state == PikminState.Dead) return;
 
-
+        CurrentResourceNode = null;
         AddMeToFormation(); //does nothing if in formation already
 
         if (Vector2.Distance(transform.position, formationPositionTransform.position) <= 20f)
@@ -291,8 +316,23 @@ public class Pikmin : MonoBehaviour
     {
         if (collision.GetComponent<Recall>() != null) //.gameObject.TryGetComponent(out Recall recall))
         {
-            ReturnToFormation();
+            if(state == PikminState.DoneGrowing)
+            {
+                StartCoroutine("Sprout");
+            }
+            else if (state != PikminState.Growing)
+            {
+                ReturnToFormation();
+            }
+
         }
+    }
+
+    IEnumerator Sprout()
+    {
+        animator.SetTrigger("Sprout");
+        yield return new WaitForSeconds(1.5f);
+        ReturnToFormation();
     }
 
     private void TakeDamage(int amount)
@@ -313,13 +353,15 @@ public class Pikmin : MonoBehaviour
 
     private IEnumerator Death()
     {
-        yield return new WaitForSeconds(DeathAnimationTime);
+        yield return new WaitForSeconds(info.DeathAnimationTime);
         Destroy(gameObject);
     }
 }
 
 public enum PikminState
 {
+    Growing, // Still growing wait until done.
+    DoneGrowing, // Waiting to be returned to formation
     Idle, //doing nothing, waiting for a command outside of your control
     Returning, //Heading to formation
     InFormation, //In the formation, will move according to formation rules

@@ -49,18 +49,36 @@ MonoBehaviour:
   - type: 0
     uiPortraitSprite: {fileID: 21300000, guid: b49d9b1e2398de74c9cfa16143922875, type: 3}
     prefab: {fileID: 2203667866429452515, guid: 0ee13b67620c2634fa4c120ab1524306, type: 3}
-    backgroundColor: {r: 0.29036134, g: 0.4245283, b: 0.35904205, a: 1}
+    backgroundColor: {r: 0.36084905, g: 0.5, b: 0.4345172, a: 1}
     foodCost: 5
     timeToBuild: 2
+    IdleInteractRange: 60
+    ActionInteractionRange: 15
+    ActionInteractionDelay: 1.5
+    maxHealth: 10
+    DeathAnimationTime: 1
+    maxItemCount: 1
   - type: 1
     uiPortraitSprite: {fileID: 21300000, guid: 9e76f8c982569904aba0c0e82be8c747, type: 3}
     prefab: {fileID: 2203667866429452515, guid: c12c7229e48e23a4fba7feae640b71a5, type: 3}
-    backgroundColor: {r: 0.28617838, g: 0.36016268, b: 0.5566038, a: 1}
+    backgroundColor: {r: 0.2967, g: 0.3334058, b: 0.43, a: 1}
     foodCost: 15
     timeToBuild: 5
+    IdleInteractRange: 60
+    ActionInteractionRange: 15
+    ActionInteractionDelay: 1.5
+    maxHealth: 10
+    DeathAnimationTime: 1
+    maxItemCount: 4
   - type: 2
     uiPortraitSprite: {fileID: 21300000, guid: 7c003a9d0e4d64e40a7c5caa3ecb4f00, type: 3}
     prefab: {fileID: 2203667866429452515, guid: 2fb3b4e2a3f18fd41afc60bf4c224071, type: 3}
-    backgroundColor: {r: 0.4245283, g: 0.35623553, b: 0.22227661, a: 1}
+    backgroundColor: {r: 0.6, g: 0.55380005, b: 0.46800002, a: 1}
     foodCost: 10
     timeToBuild: 3
+    IdleInteractRange: 60
+    ActionInteractionRange: 15
+    ActionInteractionDelay: 1.5
+    maxHealth: 10
+    DeathAnimationTime: 1
+    maxItemCount: 2

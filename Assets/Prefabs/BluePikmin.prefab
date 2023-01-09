@@ -51,15 +51,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8375db8e012d2f94dbd9b39fedccbc40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IdleInteractRange: 150
-  ActionInteractionRange: 50
-  ActionInteractionDelay: 1.5
-  maxHealth: 10
-  PikminType: 0
-  DeathAnimationTime: 1
-  maxItemCount: 2
+  PikminType: 2
   CarryLocation: {fileID: 3546050375149039865}
   ActionHandObject: {fileID: 5265835375048047813}
+  ProgressBarPrefab: {fileID: 3426631026171357522, guid: 28757eed3ef70024caaa24416ca961e1, type: 3}
   formationPositionTransform: {fileID: 0}
 --- !u!58 &2203667866429452518
 CircleCollider2D:

@@ -37,8 +37,10 @@ public class PikminUI : MonoBehaviour
         {
             queued++;
             BuildText.text = queued.ToString();
-            if (queued == 1)
-                StartCoroutine(AnimateProgress());
+
+            Manager.Instance.MakeNewPikmin(info.type);
+            //if (queued == 1)
+            //    StartCoroutine(AnimateProgress());
         }
     }
 

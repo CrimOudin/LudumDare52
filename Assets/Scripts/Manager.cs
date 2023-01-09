@@ -123,7 +123,7 @@ public class Manager : MonoBehaviour
         }
         Pikmin p = go.GetComponent<Pikmin>();
         p.PikminType = type;
-        p.AddMeToFormation();
+        //p.AddMeToFormation();
     }
 
     public void TogglePikminTypeSelected(PikminType type, bool adding)
