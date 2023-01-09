@@ -12,16 +12,18 @@ public class SkullEnemy : Enemy
     {
         attackInfo.attackGO.GetComponent<OneTimeAnimationHandler>().endAction = AttackAnimationComplete;
         patrolInfo.startLoc = transform.position;
-        
+
         GetComponent<NavMeshAgent>().updateUpAxis = false;
         GetComponent<NavMeshAgent>().updatePosition = false;
         GetComponent<NavMeshAgent>().updateRotation = false;
+
+        state = EnemyState.Patrolling;
     }
 
     private void Update()
     {
         transform.position = new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y);
-        state = EnemyState.Patrolling;
+
         if (state == EnemyState.Patrolling)
         {
             Patrol();
@@ -32,7 +34,7 @@ public class SkullEnemy : Enemy
         }
         else if (state == EnemyState.Returning)
         {
-            Return();
+            CheckForReturnDone();
         }
     }
 
@@ -41,40 +43,47 @@ public class SkullEnemy : Enemy
         //todo: actually target pikmin.  If no pikmin in range, check if pikmin in range.
         //                              If none, Return().  Else Move to new location to attack new target
 
-        if (attackInfo.state == AttackState.None)
+        //MoveTo(currentAggroTarget.transform.position);
+        if (UpdateMove()) //if UpdateMove says you're good to attack (returns true)
         {
-            if (attackInfo.currentCooldown < attackInfo.attackCooldown)
+            //If you're just starting off, check if you're off attack cooldown
+            if (attackInfo.state == AttackState.None)
+            {
+                if (attackInfo.currentCooldown < attackInfo.attackCooldown)
+                {
+                    attackInfo.currentCooldown += Time.deltaTime;
+                }
+                else
+                {
+                    state = EnemyState.Attacking;
+                    attackInfo.attackGO.transform.position = transform.position + new Vector3(150, 0, 0); //todo: replace with target pikmin's position (not z)
+                    GetComponent<Animator>().SetBool("Attacking", true);
+                    attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = true;
+                    attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", false); //just in case
+                    attackInfo.state = AttackState.Windup;
+                    attackInfo.currentCooldown = 0;
+                }
+            }
+            //Once you're done with cooldown, perform an attack windup
+            else if (attackInfo.state == AttackState.Windup)
             {
                 attackInfo.currentCooldown += Time.deltaTime;
+                if (attackInfo.currentCooldown >= attackInfo.attackWindupTime)
+                {
+                    attackInfo.state = AttackState.Attacking;
+                    attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", true);
+                    attackInfo.currentCooldown = 0;
+                    attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = true;
+                }
             }
-            else
+            //After windup, attack
+            else if (attackInfo.state == AttackState.Attacking)
             {
-                state = EnemyState.Attacking;
-                attackInfo.attackGO.transform.position = transform.position + new Vector3(150, 0, 0); //todo: replace with target pikmin's position (not z)
-                GetComponent<Animator>().SetBool("Attacking", true);
-                attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = true;
-                attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", false); //just in case
-                attackInfo.state = AttackState.Windup;
-                attackInfo.currentCooldown = 0;
-            }
-        }
-        else if (attackInfo.state == AttackState.Windup)
-        {
-            attackInfo.currentCooldown += Time.deltaTime;
-            if (attackInfo.currentCooldown >= attackInfo.attackWindupTime)
-            {
-                attackInfo.state = AttackState.Attacking;
-                attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", true);
-                attackInfo.currentCooldown = 0;
-                attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = true;
-            }
-        }
-        else if (attackInfo.state == AttackState.Attacking)
-        {
-            attackInfo.currentCooldown += Time.deltaTime;
-            if (attackInfo.attackGO.GetComponent<BoxCollider2D>().isActiveAndEnabled && attackInfo.currentCooldown >= attackInfo.attackDuration)
-            {
-                attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = false;
+                attackInfo.currentCooldown += Time.deltaTime;
+                if (attackInfo.attackGO.GetComponent<BoxCollider2D>().isActiveAndEnabled && attackInfo.currentCooldown >= attackInfo.attackDuration)
+                {
+                    attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = false;
+                }
             }
         }
     }
@@ -90,13 +99,14 @@ public class SkullEnemy : Enemy
 
     public override void Patrol()
     {
-        if(patrolInfo.activePatrolTime <= 0)
+        //Patrol will get interrupted by Enemy.OnTriggerEnter2D, setting the state of this enemy to Aggro
+        if (patrolInfo.activePatrolTime <= 0)
         {
             patrolInfo.activePatrolTime = patrolInfo.patrolDuration + UnityEngine.Random.Range(-patrolInfo.patrolVariance, patrolInfo.patrolVariance);
             patrolInfo.current = 0;
         }
 
-        if(patrolInfo.current < patrolInfo.activePatrolTime)
+        if (patrolInfo.current < patrolInfo.activePatrolTime)
         {
             patrolInfo.current += Time.deltaTime;
         }
@@ -109,15 +119,5 @@ public class SkullEnemy : Enemy
             Vector2 delta = new Vector2(Mathf.Cos(angleInRad), Mathf.Sin(angleInRad));
             MoveTo(patrolInfo.startLoc + distance * delta);
         }
-    }
-
-    public override void MoveTo(Vector2 loc)
-    {
-        GetComponent<NavMeshAgent>().SetDestination(new Vector3(loc.x, loc.y, transform.position.z));
-    }
-
-    public override void Return()
-    {
-        throw new System.NotImplementedException();
     }
 }
