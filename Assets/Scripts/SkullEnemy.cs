@@ -28,7 +28,7 @@ public class SkullEnemy : Enemy
         {
             Patrol();
         }
-        else if (state == EnemyState.Aggro)
+        else if (state == EnemyState.Aggro || state == EnemyState.Attacking)
         {
             Attack();
         }
@@ -40,32 +40,9 @@ public class SkullEnemy : Enemy
 
     public override void Attack()
     {
-        //todo: actually target pikmin.  If no pikmin in range, check if pikmin in range.
-        //                              If none, Return().  Else Move to new location to attack new target
-
-        //MoveTo(currentAggroTarget.transform.position);
-        if (UpdateMove()) //if UpdateMove says you're good to attack (returns true)
+        if (state == EnemyState.Attacking)
         {
-            //If you're just starting off, check if you're off attack cooldown
-            if (attackInfo.state == AttackState.None)
-            {
-                if (attackInfo.currentCooldown < attackInfo.attackCooldown)
-                {
-                    attackInfo.currentCooldown += Time.deltaTime;
-                }
-                else
-                {
-                    state = EnemyState.Attacking;
-                    attackInfo.attackGO.transform.position = transform.position + new Vector3(150, 0, 0); //todo: replace with target pikmin's position (not z)
-                    GetComponent<Animator>().SetBool("Attacking", true);
-                    attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = true;
-                    attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", false); //just in case
-                    attackInfo.state = AttackState.Windup;
-                    attackInfo.currentCooldown = 0;
-                }
-            }
-            //Once you're done with cooldown, perform an attack windup
-            else if (attackInfo.state == AttackState.Windup)
+            if (attackInfo.state == AttackState.Windup)
             {
                 attackInfo.currentCooldown += Time.deltaTime;
                 if (attackInfo.currentCooldown >= attackInfo.attackWindupTime)
@@ -83,6 +60,33 @@ public class SkullEnemy : Enemy
                 if (attackInfo.attackGO.GetComponent<BoxCollider2D>().isActiveAndEnabled && attackInfo.currentCooldown >= attackInfo.attackDuration)
                 {
                     attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = false;
+                    GetComponent<NavMeshAgent>().isStopped = false;
+                }
+            }
+        }
+        else
+        {
+            if (UpdateMove()) //if UpdateMove says you're good to attack (returns true)
+            {
+                //If you're just starting off, check if you're off attack cooldown
+                if (attackInfo.state == AttackState.None)
+                {
+                    if (attackInfo.currentCooldown < attackInfo.attackCooldown)
+                    {
+                        attackInfo.currentCooldown += Time.deltaTime;
+                    }
+                    else
+                    {
+                        state = EnemyState.Attacking;
+                        attackInfo.state = AttackState.Windup;
+
+                        attackInfo.attackGO.transform.position = currentAggroTarget.transform.position;
+                        GetComponent<Animator>().SetBool("Attacking", true);
+                        attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = true;
+                        attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", false); //just in case
+                        attackInfo.currentCooldown = 0;
+                        GetComponent<NavMeshAgent>().isStopped = true;
+                    }
                 }
             }
         }
@@ -95,6 +99,7 @@ public class SkullEnemy : Enemy
         attackInfo.currentCooldown = 0;
         GetComponent<Animator>().SetBool("Attacking", false);
         attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = false;
+        state = EnemyState.Aggro;
     }
 
     public override void Patrol()

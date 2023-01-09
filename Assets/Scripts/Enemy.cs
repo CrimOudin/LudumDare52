@@ -16,7 +16,7 @@ public abstract class Enemy : MonoBehaviour
     public List<GameObject> attackableThings = new List<GameObject>();
     public bool tunnelVision = false;
     public bool canGiveMoveCommand = true;
-
+    bool returnAfterAttack = false;
 
     public abstract void Attack();
 
@@ -26,7 +26,7 @@ public abstract class Enemy : MonoBehaviour
 
     public virtual void CheckForReturnDone()
     {
-        if ((patrolInfo.startLoc - (Vector2)transform.position).magnitude < 10)
+        if ((patrolInfo.startLoc - (Vector2)transform.position).magnitude < 50)
         {
             state = EnemyState.Patrolling;
         }
@@ -34,16 +34,30 @@ public abstract class Enemy : MonoBehaviour
 
     public virtual bool UpdateMove()
     {
+        if (currentAggroTarget == null || currentAggroTarget.transform == null)
+        {
+            Deaggro();
+            return false;
+        }
+
         if (state == EnemyState.Aggro) //if you're aggro'd, wait until you've reached melee range, or the end of your patrol
         {
             if (((Vector2)transform.position - patrolInfo.startLoc).magnitude >= patrolInfo.patrolRadius)
             {
-                state = EnemyState.Returning;
-                MoveTo(patrolInfo.startLoc); //patrolInfo.currentPatrolPosition); //?
+                Deaggro();
+                return false;
             }
-            if (((Vector2)currentAggroTarget.transform.position - (Vector2)transform.position).magnitude < 120)
+
+            float distAway = ((Vector2)currentAggroTarget.transform.position - (Vector2)transform.position).magnitude;
+            if (distAway < 230)
             {
+                GetComponent<NavMeshAgent>().velocity = Vector3.zero;
                 return true; //proceed with trying to attack
+            }
+            else if (distAway < 250)
+            {
+                MoveTo(currentAggroTarget.transform.position);
+                return true;
             }
             else
             {
@@ -53,7 +67,13 @@ public abstract class Enemy : MonoBehaviour
                 {
                     GameObject go = attackableThings.OrderBy(x => Mathf.Abs((x.transform.position - transform.position).magnitude)).FirstOrDefault();
                     if (currentAggroTarget == go)
-                        MoveTo(currentAggroTarget.transform.position);
+                    {
+                        //a catch all... if you're too far away, but in patrol range, and you also can't move, just fucking attack fuck it
+                        if (!MoveTo(currentAggroTarget.transform.position))
+                        {
+                            state = EnemyState.Attacking;
+                        }
+                    }
                     else
                     {
                         //see if someone else is closer first, then call this function again to see if you're close enough or need to move
@@ -71,15 +91,41 @@ public abstract class Enemy : MonoBehaviour
         }
     }
 
+    public void Deaggro()
+    {
+        if (state != EnemyState.Attacking)
+            state = EnemyState.Returning;
+        else
+            returnAfterAttack = true;
 
-    public virtual void MoveTo(Vector2 loc)
+        MoveTo(patrolInfo.startLoc);//patrolInfo.currentPatrolPosition); //?
+        currentAggroTarget = null;
+    }
+
+
+    public virtual bool MoveTo(Vector2 loc)
     {
         if (canGiveMoveCommand)
         {
-            StartCoroutine(CommandWasIssued());
-            GetComponent<NavMeshAgent>().SetDestination(new Vector3(loc.x, loc.y, transform.position.z));
+            //StartCoroutine(CommandWasIssued());
+            Vector2 test = loc - (Vector2)transform.position;
+            if (test.magnitude < 20)
+                test = test * 20 / test.magnitude;
+
+            float percent = 1;
+            while (percent > 0 && !GetComponent<NavMeshAgent>().SetDestination((Vector2)transform.position + (test * percent)))//new Vector3(loc.x, loc.y, transform.position.z)))
+            {
+                percent -= 0.2f;
+                Vector2 a = (Vector2)currentAggroTarget.transform.position;
+                Vector2 b = (Vector2)transform.position + (test * percent);
+            }
+
             TurnTo(loc);
+
+            if (percent > 0)
+                return true;
         }
+        return false;
     }
 
     public void TurnTo(Vector2 loc)
@@ -90,17 +136,21 @@ public abstract class Enemy : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Pikmin p = collision.GetComponent<Pikmin>();
-        Olimar o = collision.GetComponent<Olimar>();
-        //Add to attackable things, if this is the first one, aggro to it.
-        if (p != null)
+        if (state != EnemyState.Returning)
         {
-            attackableThings.Add(p.gameObject);
+            Pikmin p = collision.GetComponent<Pikmin>();
+            Olimar o = collision.GetComponent<Olimar>();
+            //Add to attackable things, if this is the first one, aggro to it.
+            if (p != null)
+                AddToAttackable(p.gameObject);
+            else if (o != null)
+                AddToAttackable(o.gameObject);
         }
-        else if (o != null)
-        {
-            attackableThings.Add(o.gameObject);
-        }
+    }
+
+    private void AddToAttackable(GameObject go)
+    {
+        attackableThings.Add(go);
         if (attackableThings.Count == 1)
         {
             state = EnemyState.Aggro;
@@ -123,9 +173,7 @@ public abstract class Enemy : MonoBehaviour
                     currentAggroTarget = attackableThings.OrderBy(x => Mathf.Abs((x.transform.position - transform.position).magnitude)).FirstOrDefault();
                 else
                 {
-                    state = EnemyState.Returning;
-                    MoveTo(patrolInfo.startLoc);
-                    currentAggroTarget = null;
+                    Deaggro();
                 }
             }
         }
@@ -138,9 +186,7 @@ public abstract class Enemy : MonoBehaviour
                     currentAggroTarget = attackableThings.OrderBy(x => Mathf.Abs((x.transform.position - transform.position).magnitude)).FirstOrDefault();
                 else
                 {
-                    state = EnemyState.Returning;
-                    MoveTo(patrolInfo.startLoc);
-                    currentAggroTarget = null;
+                    Deaggro();
                 }
             }
         }
