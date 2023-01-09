@@ -369,9 +369,9 @@ public class Pikmin : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.GetComponent<Damage>())
+        if (collision.collider.GetComponent<Damage>())
         {
-            TakeDamage(collision.gameObject.GetComponent<Damage>().Amount);
+            TakeDamage(collision.collider.GetComponent<Damage>().Amount);
         }
     }
 
@@ -401,7 +401,7 @@ public class Pikmin : MonoBehaviour
     private void TakeDamage(int amount)
     {
         currentHealth -= amount;
-        if (currentHealth < 0)
+        if (currentHealth <= 0)
         {
             currentHealth = 0;
             HandleDeath();
