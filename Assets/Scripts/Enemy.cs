@@ -6,9 +6,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
-public abstract class Enemy : MonoBehaviour
+public abstract class Enemy : InteractiveObject
 {
-    public abstract int health { get; }
+    public int health;
     [HideInInspector]
     public EnemyState state;
     [HideInInspector]
@@ -24,7 +24,7 @@ public abstract class Enemy : MonoBehaviour
     public bool tunnelVision = false;
     public bool stationary;
 
-
+    protected bool isDead = false;
 
     public abstract void Attack();
 
@@ -201,7 +201,8 @@ public enum EnemyState
     Patrolling,
     Aggro,
     Attacking,
-    Returning
+    Returning,
+    Death
 }
 
 [Serializable]

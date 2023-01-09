@@ -16,6 +16,7 @@ public class Pikmin : MonoBehaviour
     private PikminState lastState = PikminState.Growing;
     public PikminState state { get; set; } = PikminState.Growing; //start a pikmin walking to formation
     public ResourceNode CurrentResourceNode { get; set; }
+    public Enemy CurrentEnemy { get; set; }
 
     private ItemType? itemType;
     private int itemAmount;
@@ -77,6 +78,14 @@ public class Pikmin : MonoBehaviour
                 CheckForFinishedGoing();
                 break;
             case PikminState.Attacking:
+                if (CurrentEnemy != null)
+                {
+                    PerformAttackTask(CurrentEnemy);
+                }
+                else if (!ActionHandObject.activeSelf)
+                {
+                    state = PikminState.Idle;
+                }
                 break;
             case PikminState.Mining:
                 if (CurrentResourceNode != null)
@@ -205,6 +214,60 @@ public class Pikmin : MonoBehaviour
             else
             {
                 CurrentResourceNode = null;
+                //ReturnToFormation();
+            }
+        }
+        return false;
+    }
+
+    public bool PerformAttackTask(Enemy enemy)
+    {
+        if (state == PikminState.Dead) return false;
+
+        if(enemy.health <= 0)
+        {
+            enemy.state = EnemyState.Death;
+            CurrentEnemy = null;
+            return false;
+        }
+
+        Vector3 closestPoint = Physics2D.ClosestPoint(collider.bounds.center, enemy.GetComponent<Collider2D>());
+        if (Vector2.Distance(transform.position, closestPoint) > info.ActionInteractionRange)
+        {
+            // To far away we need to move closer
+            navMeshAgent.SetDestination(new Vector3(closestPoint.x, closestPoint.y, 0));
+            animator.SetBool("IsWalking", true);
+            if (transform.position.x > enemy.transform.position.x)
+            {
+                //moving left
+                spriteRenderer.flipX = true;
+            }
+            else
+            {
+                //moving right
+                spriteRenderer.flipX = false;
+            }
+        }
+        else if (Time.time - lastTimeInteracted > info.ActionInteractionDelay)
+        {
+            animator.SetBool("IsWalking", false);
+            animator.SetTrigger("Action");
+            ActionHandObject.SetActive(true);
+            ActionHandObject.transform.parent = null;
+            ActionHandObject.transform.position = closestPoint;
+            // We are close enough and can take a attack action.
+            lastTimeInteracted = Time.time;
+
+            
+            if (enemy.health > 0)
+            {
+                enemy.health -= info.Damage;
+                return true;
+            }
+            else
+            {
+                enemy.state = EnemyState.Death;
+                CurrentEnemy = null;
                 //ReturnToFormation();
             }
         }

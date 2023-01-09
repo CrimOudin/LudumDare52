@@ -5,8 +5,6 @@ using UnityEngine.AI;
 
 public class SkullEnemy : Enemy
 {
-    public override int health => 420;
-
     private void Awake()
     {
         attackInfo.attackGO.GetComponent<OneTimeAnimationHandler>().endAction = AttackAnimationComplete;
@@ -35,6 +33,20 @@ public class SkullEnemy : Enemy
         {
             CheckForReturnDone();
         }
+        else if (state == EnemyState.Death)
+        {
+            if (!isDead)
+            {
+                isDead = true;
+                StartCoroutine("Death");
+            }
+        }
+    }
+
+    IEnumerator Death()
+    {
+        yield return new WaitForSeconds(2);
+        Destroy(gameObject);
     }
 
     public override void Attack()
@@ -131,5 +143,12 @@ public class SkullEnemy : Enemy
             Vector2 delta = new Vector2(Mathf.Cos(angleInRad), Mathf.Sin(angleInRad));
             MoveTo(patrolInfo.startLoc + distance * delta);
         }
+    }
+
+    public override void OnPikminInteract(Pikmin pikmin)
+    {
+        pikmin.CurrentEnemy = this;
+        pikmin.state = PikminState.Attacking;
+        pikmin.PerformAttackTask(this);
     }
 }

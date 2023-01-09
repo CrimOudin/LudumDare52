@@ -41,4 +41,5 @@ public class PikminInfo
     public int maxHealth = 10;
     public float DeathAnimationTime = 1f;
     public int maxItemCount = 2;
+    public int Damage = 1;
 }
