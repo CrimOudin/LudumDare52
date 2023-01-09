@@ -306,7 +306,7 @@ public class Pikmin : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Damage"))
+        if (collision.gameObject.GetComponent<Damage>())
         {
             TakeDamage(collision.gameObject.GetComponent<Damage>().Amount);
         }

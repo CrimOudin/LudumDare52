@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class Damage : MonoBehaviour
 {
-    public int Amount;
+    public int Amount = 5;
 }

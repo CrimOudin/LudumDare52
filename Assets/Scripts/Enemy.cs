@@ -16,7 +16,7 @@ public abstract class Enemy : MonoBehaviour
     public List<GameObject> attackableThings = new List<GameObject>();
     public bool tunnelVision = false;
     public bool canGiveMoveCommand = true;
-    bool returnAfterAttack = false;
+    public bool returnAfterAttack = false;
 
     public abstract void Attack();
 
@@ -26,6 +26,7 @@ public abstract class Enemy : MonoBehaviour
 
     public virtual void CheckForReturnDone()
     {
+        MoveTo(patrolInfo.startLoc);
         if ((patrolInfo.startLoc - (Vector2)transform.position).magnitude < 50)
         {
             state = EnemyState.Patrolling;
@@ -49,15 +50,9 @@ public abstract class Enemy : MonoBehaviour
             }
 
             float distAway = ((Vector2)currentAggroTarget.transform.position - (Vector2)transform.position).magnitude;
-            if (distAway < 230)
+            if (distAway < 160)
             {
-                GetComponent<NavMeshAgent>().velocity = Vector3.zero;
                 return true; //proceed with trying to attack
-            }
-            else if (distAway < 250)
-            {
-                MoveTo(currentAggroTarget.transform.position);
-                return true;
             }
             else
             {

@@ -100,6 +100,14 @@ public class SkullEnemy : Enemy
         GetComponent<Animator>().SetBool("Attacking", false);
         attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = false;
         state = EnemyState.Aggro;
+        if (returnAfterAttack)
+        {
+            state = EnemyState.Returning;
+            MoveTo(patrolInfo.startLoc);
+            returnAfterAttack = false;
+        }
+        else
+            state = EnemyState.Aggro;
     }
 
     public override void Patrol()
