@@ -33,6 +33,20 @@ public class EyeplantEnemy : Enemy
         {
             CheckForReturnDone();
         }
+        else if (state == EnemyState.Death)
+        {
+            if (!isDead)
+            {
+                isDead = true;
+                StartCoroutine("Death");
+            }
+        }
+    }
+
+    IEnumerator Death()
+    {
+        yield return new WaitForSeconds(2);
+        Destroy(gameObject);
     }
 
     public override void Attack()
