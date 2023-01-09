@@ -30,6 +30,7 @@ public abstract class Enemy : MonoBehaviour
         if ((patrolInfo.startLoc - (Vector2)transform.position).magnitude < 50)
         {
             state = EnemyState.Patrolling;
+            //GetComponent<NavMeshAgent>().velocity = Vector3.zero;
         }
     }
 
@@ -89,11 +90,13 @@ public abstract class Enemy : MonoBehaviour
     public void Deaggro()
     {
         if (state != EnemyState.Attacking)
+        {
             state = EnemyState.Returning;
+            MoveTo(patrolInfo.startLoc);//patrolInfo.currentPatrolPosition); //?
+        }
         else
             returnAfterAttack = true;
 
-        MoveTo(patrolInfo.startLoc);//patrolInfo.currentPatrolPosition); //?
         currentAggroTarget = null;
     }
 
