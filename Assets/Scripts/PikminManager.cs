@@ -34,4 +34,11 @@ public class PikminInfo
     public Color backgroundColor;
     public int foodCost;
     public int timeToBuild;
+
+    public float IdleInteractRange = 3f;
+    public float ActionInteractionRange = 1f;
+    public float ActionInteractionDelay = 5f;
+    public int maxHealth = 10;
+    public float DeathAnimationTime = 1f;
+    public int maxItemCount = 2;
 }

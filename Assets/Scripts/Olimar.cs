@@ -7,18 +7,22 @@ public class Olimar : MonoBehaviour
     [SerializeField] private float maxSpeed;
     private int currentHealth;
     private Rigidbody2D rigidBody;
+    private SpriteRenderer spriteRenderer;
+    private Animator animator;
 
     private void Start()
     {
         currentHealth = maxHealth; 
         rigidBody = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        animator = GetComponent<Animator>();
     }
 
     void Update()
     {
         float verticalMovement = Input.GetAxisRaw("Vertical");
         float horizontalMovement = Input.GetAxisRaw("Horizontal");
-        
+
         Vector3 movement = new Vector2(horizontalMovement, verticalMovement) * 1.4f;
         if (movement.magnitude > 1.4f)
             movement = movement.normalized * 1.4f;
@@ -27,6 +31,14 @@ public class Olimar : MonoBehaviour
         // Removed rotation because the art asset didnt need it.
         if (movement != Vector3.zero)
         {
+            if (!animator.GetBool("IsWalking"))
+            {
+                animator.SetBool("IsWalking", true);
+            }
+            if (!Mathf.Approximately(horizontalMovement, 0))
+            {
+                spriteRenderer.flipX = horizontalMovement < 0;
+            }
             rigidBody.AddForce(movement * speed * Time.deltaTime, ForceMode2D.Impulse);
             if (rigidBody.velocity.magnitude > maxSpeed)
             {
@@ -38,7 +50,20 @@ public class Olimar : MonoBehaviour
         }
         else
         {
+            if (animator.GetBool("IsWalking"))
+            {
+                animator.SetBool("IsWalking", false);
+            }
             rigidBody.velocity = Vector3.zero;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            animator.SetBool("IsAction", true);
+        }
+        else if (Input.GetKeyUp(KeyCode.Mouse1))
+        {
+            animator.SetBool("IsAction", false);
         }
     }
 
