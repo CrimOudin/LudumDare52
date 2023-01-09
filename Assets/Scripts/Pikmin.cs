@@ -10,6 +10,7 @@ public class Pikmin : MonoBehaviour
     public Transform CarryLocation;
     public GameObject ActionHandObject;
     public GameObject ProgressBarPrefab;
+    public AudioHandler SFX;
 
     private PikminInfo info;
 
@@ -202,6 +203,7 @@ public class Pikmin : MonoBehaviour
         {
             animator.SetBool("IsWalking", false);
             animator.SetTrigger("Action");
+            SFX.PlayFightSound();
             ActionHandObject.SetActive(true);
             ActionHandObject.transform.parent = null;
             ActionHandObject.transform.position = closestPoint;
@@ -272,6 +274,7 @@ public class Pikmin : MonoBehaviour
         {
             animator.SetBool("IsWalking", false);
             animator.SetTrigger("Action");
+            SFX.PlayFightSound();
             ActionHandObject.SetActive(true);
             ActionHandObject.transform.parent = null;
             ActionHandObject.transform.position = closestPoint;
@@ -306,6 +309,7 @@ public class Pikmin : MonoBehaviour
             Manager.Instance.OlimarsPikminFormation.RemovePikmin(this);
             navMeshAgent.SetDestination(new Vector3(location.x, location.y, 0));
             animator.SetBool("IsWalking", true);
+            SFX.PlayCommandSound();
             if (transform.position.x > location.x)
             {
                 //moving left
@@ -432,6 +436,7 @@ public class Pikmin : MonoBehaviour
             }
             else if (state != PikminState.Growing)
             {
+                SFX.PlayRecallSound();
                 ReturnToFormation();
             }
         }
@@ -445,6 +450,7 @@ public class Pikmin : MonoBehaviour
     {
         animator.SetTrigger("Sprout");
         yield return new WaitForSeconds(1.5f);
+        SFX.PlayRecallSound();
         ReturnToFormation();
     }
 

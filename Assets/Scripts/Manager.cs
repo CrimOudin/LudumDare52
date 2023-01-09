@@ -111,7 +111,7 @@ public class Manager : MonoBehaviour
     internal Pikmin GetNextAvailablePikmin(List<PikminType> pikminTypesAllowed = null)
     {
         Pikmin first = selectedPikminTypes.Count == 0 ?
-                           OlimarsPikminFormation.PikminInFormation.FirstOrDefault() :
+                           OlimarsPikminFormation.PikminInFormation.Where(x => x.state == PikminState.InFormation).FirstOrDefault() :
                            OlimarsPikminFormation.PikminInFormation
                            .Where(x => selectedPikminTypes.Contains(x.PikminType))
                            .Where(x => (pikminTypesAllowed == null || pikminTypesAllowed.Contains(x.PikminType)) && x.state == PikminState.InFormation)
