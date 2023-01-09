@@ -33,7 +33,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6449076330413724769
 SpriteRenderer:
@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7b8498f0e73e764fa1a1ceb8e325a26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pikminTypesAllowed: 0100000002000000
+  pikminTypesAllowed: 010000000200000000000000
   ResourceType: 1
   ResourceTotalAmount: 10
   ResourceDepletedAnimationTime: 1

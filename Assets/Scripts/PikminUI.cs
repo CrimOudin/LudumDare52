@@ -36,7 +36,7 @@ public class PikminUI : MonoBehaviour
         if(Manager.Instance.SubtractResource(ItemType.Food, info.foodCost))
         {
             queued++;
-            BuildText.text = queued.ToString();
+            //BuildText.text = queued.ToString();
 
             Manager.Instance.MakeNewPikmin(info.type);
             //if (queued == 1)
