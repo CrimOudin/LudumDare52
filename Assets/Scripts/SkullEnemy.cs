@@ -61,16 +61,16 @@ public class SkullEnemy : Enemy
                     attackInfo.state = AttackState.Attacking;
                     attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", true);
                     attackInfo.currentCooldown = 0;
-                    attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = true;
+                    attackInfo.attackGO.GetComponent<Collider2D>().enabled = true;
                 }
             }
             //After windup, attack
             else if (attackInfo.state == AttackState.Attacking)
             {
                 attackInfo.currentCooldown += Time.deltaTime;
-                if (attackInfo.attackGO.GetComponent<BoxCollider2D>().isActiveAndEnabled && attackInfo.currentCooldown >= attackInfo.attackDuration)
+                if (attackInfo.attackGO.GetComponent<Collider2D>().isActiveAndEnabled && attackInfo.currentCooldown >= attackInfo.attackDuration)
                 {
-                    attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = false;
+                    attackInfo.attackGO.GetComponent<Collider2D>().enabled = false;
                 }
             }
         }
@@ -93,6 +93,7 @@ public class SkullEnemy : Enemy
                         attackInfo.attackGO.transform.position = currentAggroTarget.transform.position;
                         GetComponent<Animator>().SetBool("Attacking", true);
                         attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = true;
+                        attackInfo.attackGO.GetComponent<Collider2D>().enabled = true;
                         attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", false); //just in case
                         attackInfo.currentCooldown = 0;
                         GetComponent<NavMeshAgent>().isStopped = true;
@@ -109,6 +110,7 @@ public class SkullEnemy : Enemy
         attackInfo.currentCooldown = 0;
         GetComponent<Animator>().SetBool("Attacking", false);
         attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = false;
+        attackInfo.attackGO.GetComponent<Collider2D>().enabled = false;
         GetComponent<NavMeshAgent>().isStopped = false;
 
         if (returnAfterAttack)
