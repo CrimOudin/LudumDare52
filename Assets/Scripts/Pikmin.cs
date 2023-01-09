@@ -367,7 +367,7 @@ public class Pikmin : MonoBehaviour
             formationPositionTransform = Manager.Instance.OlimarsPikmanFormation.AddPikmin(this);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collision2D collision)
     {
         if (collision.collider.GetComponent<Damage>())
         {
