@@ -367,17 +367,9 @@ public class Pikmin : MonoBehaviour
             formationPositionTransform = Manager.Instance.OlimarsPikmanFormation.AddPikmin(this);
     }
 
-    private void OnTriggerEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collider)
     {
-        if (collision.collider.GetComponent<Damage>())
-        {
-            TakeDamage(collision.collider.GetComponent<Damage>().Amount);
-        }
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.GetComponent<Recall>() != null) //.gameObject.TryGetComponent(out Recall recall))
+        if (collider.GetComponent<Recall>() != null) //.gameObject.TryGetComponent(out Recall recall))
         {
             if(state == PikminState.DoneGrowing)
             {
@@ -388,6 +380,10 @@ public class Pikmin : MonoBehaviour
                 ReturnToFormation();
             }
 
+        }
+        if (collider.GetComponent<Damage>())
+        {
+            TakeDamage(collider.GetComponent<Damage>().Amount);
         }
     }
 
