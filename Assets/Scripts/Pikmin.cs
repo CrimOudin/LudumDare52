@@ -300,6 +300,8 @@ public class Pikmin : MonoBehaviour
         if (state == PikminState.Dead) return;
 
         CurrentResourceNode = null;
+        CurrentEnemy = null;
+
         AddMeToFormation(); //does nothing if in formation already
 
         if (Vector2.Distance(transform.position, formationPositionTransform.position) <= 20f)
@@ -406,7 +408,7 @@ public class Pikmin : MonoBehaviour
 
     private void HandleDeath()
     {
-        Manager.Instance.OlimarsPikmanFormation.PikminInFormation.Remove(this);
+        Manager.Instance.OlimarsPikmanFormation.RemovePikmin(this);
         StartCoroutine("Death");
     }
 
