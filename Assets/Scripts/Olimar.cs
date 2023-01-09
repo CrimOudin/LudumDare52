@@ -10,6 +10,25 @@ public class Olimar : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Animator animator;
 
+    private bool _canAct = true;
+    [HideInInspector]
+    public bool canAct
+    {
+        get
+        {
+            return _canAct;
+        }
+        set
+        {
+            _canAct = value;
+            if(!_canAct && animator != null)
+            {
+                animator.SetBool("IsWalking", false);
+                rigidBody.velocity = Vector3.zero;
+            }
+        }
+    }
+
     private void Start()
     {
         currentHealth = maxHealth; 
@@ -20,50 +39,53 @@ public class Olimar : MonoBehaviour
 
     void Update()
     {
-        float verticalMovement = Input.GetAxisRaw("Vertical");
-        float horizontalMovement = Input.GetAxisRaw("Horizontal");
+        if (canAct)
+        {
+            float verticalMovement = Input.GetAxisRaw("Vertical");
+            float horizontalMovement = Input.GetAxisRaw("Horizontal");
 
-        Vector3 movement = new Vector2(horizontalMovement, verticalMovement) * 1.4f;
-        if (movement.magnitude > 1.4f)
-            movement = movement.normalized * 1.4f;
+            Vector3 movement = new Vector2(horizontalMovement, verticalMovement) * 1.4f;
+            if (movement.magnitude > 1.4f)
+                movement = movement.normalized * 1.4f;
 
-        //transform.position += movement * speed * Time.deltaTime;
-        // Removed rotation because the art asset didnt need it.
-        if (movement != Vector3.zero)
-        {
-            if (!animator.GetBool("IsWalking"))
+            //transform.position += movement * speed * Time.deltaTime;
+            // Removed rotation because the art asset didnt need it.
+            if (movement != Vector3.zero)
             {
-                animator.SetBool("IsWalking", true);
+                if (!animator.GetBool("IsWalking"))
+                {
+                    animator.SetBool("IsWalking", true);
+                }
+                if (!Mathf.Approximately(horizontalMovement, 0))
+                {
+                    spriteRenderer.flipX = horizontalMovement < 0;
+                }
+                rigidBody.AddForce(movement * speed * Time.deltaTime, ForceMode2D.Impulse);
+                if (rigidBody.velocity.magnitude > maxSpeed)
+                {
+                    rigidBody.velocity = rigidBody.velocity.normalized * maxSpeed;
+                }
+                //    var direction = -movement;
+                //    float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                //    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             }
-            if (!Mathf.Approximately(horizontalMovement, 0))
+            else
             {
-                spriteRenderer.flipX = horizontalMovement < 0;
+                if (animator.GetBool("IsWalking"))
+                {
+                    animator.SetBool("IsWalking", false);
+                }
+                rigidBody.velocity = Vector3.zero;
             }
-            rigidBody.AddForce(movement * speed * Time.deltaTime, ForceMode2D.Impulse);
-            if (rigidBody.velocity.magnitude > maxSpeed)
-            {
-                rigidBody.velocity = rigidBody.velocity.normalized * maxSpeed;
-            }
-            //    var direction = -movement;
-            //    float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            //    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-        }
-        else
-        {
-            if (animator.GetBool("IsWalking"))
-            {
-                animator.SetBool("IsWalking", false);
-            }
-            rigidBody.velocity = Vector3.zero;
-        }
 
-        if (Input.GetKeyDown(KeyCode.Mouse1))
-        {
-            animator.SetBool("IsAction", true);
-        }
-        else if (Input.GetKeyUp(KeyCode.Mouse1))
-        {
-            animator.SetBool("IsAction", false);
+            if (Input.GetKeyDown(KeyCode.Mouse1))
+            {
+                animator.SetBool("IsAction", true);
+            }
+            else if (Input.GetKeyUp(KeyCode.Mouse1))
+            {
+                animator.SetBool("IsAction", false);
+            }
         }
     }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Manager : MonoBehaviour
 {
@@ -16,9 +17,22 @@ public class Manager : MonoBehaviour
     public GameObject RedPikminPrefab;
     public GameObject YellowPikminPrefab;
     public GameObject BluePikminPrefab;
-    public PikminFormation OlimarsPikmanFormation;
+    public PikminFormation OlimarsPikminFormation;
     public TMP_Text FoodResourceUI;
     public TMP_Text MetalResourceUI;
+
+    public int startFood = 50;
+
+    public Olimar player;
+    public Fader fade;
+    public DialogDisplay dd;
+    public DialogManager dm;
+    public BuilderUI ui;
+    public GameObject RocketPrefab;
+
+
+    [HideInInspector]
+    public List<PikminType> encountered = new List<PikminType>();
 
     private List<PikminType> selectedPikminTypes = new List<PikminType>();
 
@@ -32,6 +46,14 @@ public class Manager : MonoBehaviour
         else
         {
             Instance = this;
+            if (fade != null)
+            {
+                player.canAct = false;
+                fade.FadeOut(1.5f, () =>
+                {
+                    dd.SetText(false, 2, dm.openingDialog, () => { player.canAct = true; });
+                });
+            }
         }
     }
 
@@ -42,7 +64,7 @@ public class Manager : MonoBehaviour
 
     private void InitializeResources()
     {
-        totalItems.Add(ItemType.Food, 50);
+        totalItems.Add(ItemType.Food, startFood);
         totalItems.Add(ItemType.Metal, 0);
 
         FoodResourceUI.text = totalItems[ItemType.Food].ToString();
@@ -51,7 +73,7 @@ public class Manager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && player.canAct)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
@@ -80,15 +102,19 @@ public class Manager : MonoBehaviour
                 }
             }
         }
+        else if(Input.GetKeyDown(KeyCode.R))
+        {
+            fade.FadeIn(1f, () => { SceneManager.LoadScene(0); });
+        }
     }
 
     internal Pikmin GetNextAvailablePikmin(List<PikminType> pikminTypesAllowed = null)
     {
         Pikmin first = selectedPikminTypes.Count == 0 ?
-                           OlimarsPikmanFormation.PikminInFormation.FirstOrDefault() :
-                           OlimarsPikmanFormation.PikminInFormation
+                           OlimarsPikminFormation.PikminInFormation.FirstOrDefault() :
+                           OlimarsPikminFormation.PikminInFormation
                            .Where(x => selectedPikminTypes.Contains(x.PikminType))
-                           .Where(x => pikminTypesAllowed == null || pikminTypesAllowed.Contains(x.PikminType))
+                           .Where(x => (pikminTypesAllowed == null || pikminTypesAllowed.Contains(x.PikminType)) && x.state == PikminState.InFormation)
                            .FirstOrDefault();
         return first;
 
@@ -109,13 +135,13 @@ public class Manager : MonoBehaviour
         switch (type)
         {
             case PikminType.Red:
-                go = Instantiate(RedPikminPrefab, OlimarsPikmanFormation.transform.position, Quaternion.identity);
+                go = Instantiate(RedPikminPrefab, OlimarsPikminFormation.transform.position, Quaternion.identity);
                 break;
             case PikminType.Yellow:
-                go = Instantiate(YellowPikminPrefab, OlimarsPikmanFormation.transform.position, Quaternion.identity);
+                go = Instantiate(YellowPikminPrefab, OlimarsPikminFormation.transform.position, Quaternion.identity);
                 break;
             case PikminType.Blue:
-                go = Instantiate(BluePikminPrefab, OlimarsPikmanFormation.transform.position, Quaternion.identity);
+                go = Instantiate(BluePikminPrefab, OlimarsPikminFormation.transform.position, Quaternion.identity);
                 break;
             default:
                 Debug.LogError("No Type Setup for this type");
@@ -180,5 +206,66 @@ public class Manager : MonoBehaviour
     public int GetResourceAmount(ItemType type)
     {
         return totalItems[type];
+    }
+
+
+    public void PikminIntro()
+    {
+        player.canAct = false; 
+        dd.SetText(false, 2, dm.pikminIntro, () => { player.canAct = true; });
+    }
+
+    public void EnemyIntro()
+    {
+        player.canAct = false;
+        dd.SetText(false, 2, dm.enemyIntro, () => { player.canAct = true; });
+    }
+
+    public void NewPikminEncountered(PikminType type)
+    {
+        if (!encountered.Contains(type))
+        {
+            if (encountered.Count == 0)
+            {
+                //pikmin intro 2.  Show UI finally
+                player.canAct = false;
+                dd.SetText(false, 1, dm.pikminIntroduction, () => { player.canAct = true; ui.gameObject.SetActive(true); ui.Set(type); ui.Set(PikminType.Rocket); });
+            }
+            else
+            {
+                //add pikmin type to UI.  Summary text for that pikmin type?
+                string a = type == PikminType.Blue ? dm.bluePikminText :
+                          (type == PikminType.Red ? dm.redPikminText : dm.yellowPikminText);
+                dd.SetText(true, 1, a, () => { ui.Set(type); });
+            }
+            encountered.Add(type);
+        }
+    }
+
+
+    public void Victory()
+    {
+        player.canAct = false;
+        GameObject rocket = Instantiate(RocketPrefab);
+        rocket.transform.position = player.transform.position + new Vector3(200, 0, 0);
+        dd.SetText(false, 1, dm.rocketDialog, () => { StartCoroutine(WinAnimation(rocket)); });
+
+    }
+
+    private IEnumerator WinAnimation(GameObject rocket)
+    {
+        Destroy(player.gameObject);
+        yield return new WaitForSeconds(1f);
+        rocket.GetComponent<Animator>().SetBool("blastoff", true);
+        yield return new WaitForSeconds(1f);
+
+        fade.FadeIn(2f, null);
+        while(rocket.transform.position.y < Camera.main.transform.position.y + 540)
+        {
+            rocket.transform.position += new Vector3(0, Time.deltaTime * 200);
+            yield return new WaitForEndOfFrame();
+        }
+
+        yield break;
     }
 }

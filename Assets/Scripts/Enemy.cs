@@ -112,7 +112,7 @@ public abstract class Enemy : InteractiveObject
 
     public virtual bool MoveTo(Vector2 loc)
     {
-        if (!stationary)
+        if (!stationary && !isDead)
         {
             Vector2 delta = loc - (Vector2)transform.position;
             float percent = 1;

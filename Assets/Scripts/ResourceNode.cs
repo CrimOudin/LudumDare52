@@ -15,7 +15,7 @@ public class ResourceNode : InteractiveObject
     public override void OnPikminInteract(Pikmin pikmin)
     {
         if (isDepleted) return;
-        Manager.Instance.OlimarsPikmanFormation.RemovePikmin(pikmin);
+        Manager.Instance.OlimarsPikminFormation.RemovePikmin(pikmin);
 
         pikmin.state = PikminState.Mining;
         pikmin.CurrentResourceNode = this;

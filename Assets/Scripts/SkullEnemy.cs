@@ -19,7 +19,8 @@ public class SkullEnemy : Enemy
 
     private void Update()
     {
-        transform.position = new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y);
+        //transform.position = new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y);
+        GetComponent<Rigidbody2D>().MovePosition(new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y));
 
         if (state == EnemyState.Patrolling)
         {
@@ -31,6 +32,7 @@ public class SkullEnemy : Enemy
         }
         else if (state == EnemyState.Returning)
         {
+            GetComponent<NavMeshAgent>().isStopped = false;
             CheckForReturnDone();
         }
         else if (state == EnemyState.Death)
@@ -93,7 +95,6 @@ public class SkullEnemy : Enemy
                         attackInfo.attackGO.transform.position = currentAggroTarget.transform.position;
                         GetComponent<Animator>().SetBool("Attacking", true);
                         attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = true;
-                        attackInfo.attackGO.GetComponent<Collider2D>().enabled = true;
                         attackInfo.attackGO.GetComponent<Animator>().SetBool("Attack", false); //just in case
                         attackInfo.currentCooldown = 0;
                         GetComponent<NavMeshAgent>().isStopped = true;

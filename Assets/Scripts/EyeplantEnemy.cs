@@ -26,7 +26,15 @@ public class EyeplantEnemy : Enemy
         {
             transform.position = new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y);
 
-            if (state == EnemyState.Patrolling)
+            if (state == EnemyState.Death)
+            {
+                if (!isDead)
+                {
+                    isDead = true;
+                    StartCoroutine(Death());
+                }
+            }
+            else if (state == EnemyState.Patrolling)
             {
                 Patrol();
             }
@@ -37,15 +45,7 @@ public class EyeplantEnemy : Enemy
             else if (state == EnemyState.Returning)
             {
                 CheckForReturnDone();
-            }
-        }
-        else if (state == EnemyState.Death)
-        {
-            if (!isDead)
-            {
-                isDead = true;
-                StartCoroutine("Death");
-            }
+            }            
         }
     }
 
@@ -73,10 +73,10 @@ public class EyeplantEnemy : Enemy
             else if (attackInfo.state == AttackState.Attacking)
             {
                 attackInfo.currentCooldown += Time.deltaTime;
-                if(attackInfo.currentCooldown >= attackInfo.attackWindupTime && attackInfo.attackGO.GetComponent<BoxCollider2D>().isActiveAndEnabled)
-                    attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = true;
-                else if (attackInfo.currentCooldown >= attackInfo.attackDuration && attackInfo.attackGO.GetComponent<BoxCollider2D>().isActiveAndEnabled)
-                    attackInfo.attackGO.GetComponent<BoxCollider2D>().enabled = false;
+                if(attackInfo.currentCooldown >= attackInfo.attackWindupTime && attackInfo.attackGO.GetComponent<Collider2D>().isActiveAndEnabled)
+                    attackInfo.attackGO.GetComponent<Collider2D>().enabled = true;
+                else if (attackInfo.currentCooldown >= attackInfo.attackDuration && attackInfo.attackGO.GetComponent<Collider2D>().isActiveAndEnabled)
+                    attackInfo.attackGO.GetComponent<Collider2D>().enabled = false;
             }
         }
         else
@@ -110,6 +110,7 @@ public class EyeplantEnemy : Enemy
         attackInfo.currentCooldown = 0;
         GetComponent<Animator>().SetBool("Attacking", false);
         attackInfo.attackGO.GetComponent<SpriteRenderer>().enabled = false;
+        attackInfo.attackGO.GetComponent<Collider2D>().enabled = false;
 
         if (returnAfterAttack)
         {

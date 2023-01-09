@@ -46,11 +46,19 @@ public class PikminFormation : MonoBehaviour
     public Transform AddPikmin(Pikmin newPikminGO)
     {
         if (PikminInFormation.Count < formationTransforms.Count)
-        {
+        {            
             PikminInFormation.Add(newPikminGO);
             return formationTransforms[PikminInFormation.Count - 1];
         }
         else return null;
+    }
+
+    public void PikminArrived(Pikmin arrival)
+    {
+        if (!Manager.Instance.encountered.Contains(arrival.PikminType))
+        {
+            Manager.Instance.NewPikminEncountered(arrival.PikminType);
+        }
     }
 
 

@@ -33,17 +33,11 @@ public class Pikmin : MonoBehaviour
 
     public Transform formationPositionTransform; //a transform set by the PikminFormation class to let this pikmin know exactly where to move to
 
+    private bool goodtogo = false;
+
     private void Awake()
     {
-        info = PikminManager.Instance.GetPikminInfo(PikminType);
-        navMeshAgent = GetComponent<NavMeshAgent>();
-        navMeshAgent.updateUpAxis = false;
-        navMeshAgent.updatePosition = false;
-        navMeshAgent.updateRotation = false;
-        currentHealth = info.maxHealth;
-        collider = GetComponent<Collider2D>();
-        animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        StartCoroutine(WaitThenSetInfo());
     }
 
     private void Start()
@@ -53,55 +47,79 @@ public class Pikmin : MonoBehaviour
         progressBar = bar.transform.GetChild(0).GetComponent<Slider>();
     }
 
+    private IEnumerator WaitThenSetInfo()
+    {
+        while(PikminManager.Instance == null)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+        info = PikminManager.Instance.GetPikminInfo(PikminType);
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.updateUpAxis = false;
+        navMeshAgent.updatePosition = false;
+        navMeshAgent.updateRotation = false;
+        currentHealth = info.maxHealth;
+        collider = GetComponent<Collider2D>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        goodtogo = true;
+        transform.rotation = Quaternion.identity; //why the fuck is this happening
+        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+    }
+
     void Update()
     {
-        transform.position = new Vector2(navMeshAgent.nextPosition.x, navMeshAgent.nextPosition.y);
-
-        switch (state)
+        if (goodtogo)
         {
-            case PikminState.Growing:
-                UpdateGrowthProgress();
-                break;
-            case PikminState.DoneGrowing:
-                break;
-            case PikminState.Idle:
-                CheckIfInRangeOfInteractable(false);
-                break;
-            case PikminState.Returning:
-                ReturnToFormation();
-                break;
-            case PikminState.InFormation:
-                StayInFormation();
-                break;
-            case PikminState.Going:
-                //Shouldn't be able to receive any commands here, just continuing to follow the move command
-                CheckForFinishedGoing();
-                break;
-            case PikminState.Attacking:
-                if (CurrentEnemy != null)
-                {
-                    PerformAttackTask(CurrentEnemy);
-                }
-                else if (!ActionHandObject.activeSelf)
-                {
-                    state = PikminState.Idle;
-                }
-                break;
-            case PikminState.Mining:
-                if (CurrentResourceNode != null)
-                {
-                    PerformMiningTask(CurrentResourceNode);
-                }
-                else if(!ActionHandObject.activeSelf)
-                {
-                    ReturnToFormation();
-                }
-                break;
-            case PikminState.Dead:
-                break;
-        }
+            //transform.position = new Vector2(navMeshAgent.nextPosition.x, navMeshAgent.nextPosition.y);
+            GetComponent<Rigidbody2D>().MovePosition(new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y));
 
-        lastState = state;
+            switch (state)
+            {
+                case PikminState.Growing:
+                    UpdateGrowthProgress();
+                    break;
+                case PikminState.DoneGrowing:
+                    break;
+                case PikminState.Idle:
+                    CheckIfInRangeOfInteractable(false);
+                    break;
+                case PikminState.Returning:
+                    ReturnToFormation();
+                    break;
+                case PikminState.InFormation:
+                    StayInFormation();
+                    break;
+                case PikminState.Going:
+                    //Shouldn't be able to receive any commands here, just continuing to follow the move command
+                    CheckForFinishedGoing();
+                    break;
+                case PikminState.Attacking:
+                    if (CurrentEnemy != null)
+                    {
+                        PerformAttackTask(CurrentEnemy);
+                    }
+                    else if (!ActionHandObject.activeSelf)
+                    {
+                        state = PikminState.Idle;
+                    }
+                    break;
+                case PikminState.Mining:
+                    if (CurrentResourceNode != null)
+                    {
+                        PerformMiningTask(CurrentResourceNode);
+                    }
+                    else if (!ActionHandObject.activeSelf)
+                    {
+                        ReturnToFormation();
+                    }
+                    break;
+                case PikminState.Dead:
+                    break;
+            }
+
+            lastState = state;
+        }
     }
 
     private void UpdateGrowthProgress()
@@ -279,7 +297,7 @@ public class Pikmin : MonoBehaviour
         if (state == PikminState.InFormation)
         {
             state = PikminState.Going;
-            Manager.Instance.OlimarsPikmanFormation.RemovePikmin(this);
+            Manager.Instance.OlimarsPikminFormation.RemovePikmin(this);
             navMeshAgent.SetDestination(new Vector3(location.x, location.y, 0));
             animator.SetBool("IsWalking", true);
             if (transform.position.x > location.x)
@@ -315,6 +333,9 @@ public class Pikmin : MonoBehaviour
                 animator.SetBool("IsCarrying", false);
                 Destroy(spawnedResourcePrefab);
             }
+            if (state != PikminState.InFormation)
+                Manager.Instance.OlimarsPikminFormation.PikminArrived(this);
+
             state = PikminState.InFormation;
         }
         else
@@ -338,7 +359,7 @@ public class Pikmin : MonoBehaviour
 
     private void StayInFormation()
     {
-        formationPositionTransform = Manager.Instance.OlimarsPikmanFormation.GetPikminFormationPosition(this);
+        formationPositionTransform = Manager.Instance.OlimarsPikminFormation.GetPikminFormationPosition(this);
         var position = formationPositionTransform.position;
         if (Vector2.Distance(transform.position, position) >= 1f)
         {
@@ -366,7 +387,7 @@ public class Pikmin : MonoBehaviour
         //If you're not already in the formation, tell the formation you're now in formation, and have it return where you should go to.
         //Otherwise do nothing
         if (formationPositionTransform == null)
-            formationPositionTransform = Manager.Instance.OlimarsPikmanFormation.AddPikmin(this);
+            formationPositionTransform = Manager.Instance.OlimarsPikminFormation.AddPikmin(this);
     }
 
     private void OnTriggerEnter2D(Collider2D collider)
@@ -381,7 +402,6 @@ public class Pikmin : MonoBehaviour
             {
                 ReturnToFormation();
             }
-
         }
         if (collider.GetComponent<Damage>())
         {
@@ -409,7 +429,7 @@ public class Pikmin : MonoBehaviour
     private void HandleDeath()
     {
         state = PikminState.Dead;
-        Manager.Instance.OlimarsPikmanFormation.RemovePikmin(this);
+        Manager.Instance.OlimarsPikminFormation.RemovePikmin(this);
         Destroy(ActionHandObject);
         StartCoroutine("Death");
     }
