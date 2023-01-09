@@ -49,7 +49,7 @@ public class Pikmin : MonoBehaviour
 
     private IEnumerator WaitThenSetInfo()
     {
-        while(PikminManager.Instance == null)
+        while (PikminManager.Instance == null)
         {
             yield return new WaitForEndOfFrame();
         }
@@ -72,7 +72,7 @@ public class Pikmin : MonoBehaviour
         if (goodtogo)
         {
             //transform.position = new Vector2(navMeshAgent.nextPosition.x, navMeshAgent.nextPosition.y);
-            GetComponent<Rigidbody2D>().MovePosition(new Vector2(GetComponent<NavMeshAgent>().nextPosition.x, GetComponent<NavMeshAgent>().nextPosition.y));
+            GetComponent<Rigidbody2D>().MovePosition(new Vector2(navMeshAgent.nextPosition.x, navMeshAgent.nextPosition.y));
 
             switch (state)
             {
@@ -140,11 +140,12 @@ public class Pikmin : MonoBehaviour
 
     private void CheckForFinishedGoing()
     {
-        if (navMeshAgent.hasPath &&
+        if ((navMeshAgent.hasPath &&
             !navMeshAgent.isPathStale &&
             navMeshAgent.pathStatus == NavMeshPathStatus.PathComplete &&
             Vector3.Distance(navMeshAgent.pathEndPosition, transform.position) <= navMeshAgent.stoppingDistance &&
-            navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
+            navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance) ||
+            !navMeshAgent.isActiveAndEnabled)
         {
             state = PikminState.Idle;
             animator.SetBool("IsWalking", false);
@@ -179,18 +180,19 @@ public class Pikmin : MonoBehaviour
     {
         if (state == PikminState.Dead) return false;
 
-        Vector3 closestPoint = Physics2D.ClosestPoint(collider.bounds.center, resourceNode.GetComponent<Collider2D>());
-        if (Vector2.Distance(transform.position, closestPoint) > info.ActionInteractionRange)
+        Vector3 closestPoint = Physics2D.ClosestPoint(transform.position, resourceNode.GetComponent<Collider2D>());
+        Debug.DrawLine(transform.position, closestPoint);
+        if (Vector2.Distance(transform.position, closestPoint) > info.ActionInteractionRange && navMeshAgent.isActiveAndEnabled)
         {
             // To far away we need to move closer
             navMeshAgent.SetDestination(new Vector3(closestPoint.x, closestPoint.y, 0));
             animator.SetBool("IsWalking", true);
-            if(transform.position.x > resourceNode.transform.position.x)
+            if (transform.position.x > closestPoint.x)
             {
                 //moving left
                 spriteRenderer.flipX = true;
             }
-            else 
+            else
             {
                 //moving right
                 spriteRenderer.flipX = false;
@@ -242,15 +244,15 @@ public class Pikmin : MonoBehaviour
     {
         if (state == PikminState.Dead) return false;
 
-        if(enemy.health <= 0)
+        if (enemy.health <= 0)
         {
             enemy.state = EnemyState.Death;
             CurrentEnemy = null;
             return false;
         }
 
-        Vector3 closestPoint = Physics2D.ClosestPoint(collider.bounds.center, enemy.GetComponent<Collider2D>());
-        if (Vector2.Distance(transform.position, closestPoint) > info.ActionInteractionRange)
+        Vector3 closestPoint = Physics2D.ClosestPoint(transform.position, enemy.GetComponent<Collider2D>());
+        if (Vector2.Distance(transform.position, closestPoint) > info.ActionInteractionRange && navMeshAgent.isActiveAndEnabled)
         {
             // To far away we need to move closer
             navMeshAgent.SetDestination(new Vector3(closestPoint.x, closestPoint.y, 0));
@@ -276,7 +278,7 @@ public class Pikmin : MonoBehaviour
             // We are close enough and can take a attack action.
             lastTimeInteracted = Time.time;
 
-            
+
             if (enemy.health > 0)
             {
                 enemy.health -= info.Damage;
@@ -296,6 +298,10 @@ public class Pikmin : MonoBehaviour
     {
         if (state == PikminState.InFormation)
         {
+            if (!navMeshAgent.isActiveAndEnabled)
+            {
+                navMeshAgent.enabled = true;
+            }
             state = PikminState.Going;
             Manager.Instance.OlimarsPikminFormation.RemovePikmin(this);
             navMeshAgent.SetDestination(new Vector3(location.x, location.y, 0));
@@ -342,6 +348,10 @@ public class Pikmin : MonoBehaviour
         {
             state = PikminState.Returning;
             var position = formationPositionTransform.position;
+            if (!navMeshAgent.isActiveAndEnabled)
+            {
+                navMeshAgent.enabled = true;
+            }
             navMeshAgent.SetDestination(new Vector3(position.x, position.y, 0));// Manager.Instance.OlimarsPikmanFormation.gameObject.transform.position);
             animator.SetBool("IsWalking", true);
             if (transform.position.x > position.x)
@@ -363,17 +373,24 @@ public class Pikmin : MonoBehaviour
         var position = formationPositionTransform.position;
         if (Vector2.Distance(transform.position, position) >= 1f)
         {
-            navMeshAgent.SetDestination(new Vector3(position.x, position.y, 0));
-            animator.SetBool("IsWalking", true);
-            if (transform.position.x > position.x)
+            if (!navMeshAgent.isActiveAndEnabled)
             {
-                //moving left
-                spriteRenderer.flipX = true;
+                animator.SetBool("IsWalking", false);
             }
             else
             {
-                //moving right
-                spriteRenderer.flipX = false;
+                navMeshAgent.SetDestination(new Vector3(position.x, position.y, 0));
+                animator.SetBool("IsWalking", true);
+                if (transform.position.x > position.x)
+                {
+                    //moving left
+                    spriteRenderer.flipX = true;
+                }
+                else
+                {
+                    //moving right
+                    spriteRenderer.flipX = false;
+                }
             }
         }
         else
@@ -390,11 +407,26 @@ public class Pikmin : MonoBehaviour
             formationPositionTransform = Manager.Instance.OlimarsPikminFormation.AddPikmin(this);
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.GetComponent<InteractiveObject>())
+        {
+            navMeshAgent.enabled = false;
+            StartCoroutine("ReEnableNavMesh");
+        }
+    }
+
+    private IEnumerator ReEnableNavMesh()
+    {
+        yield return new WaitForSeconds(.05f);
+        navMeshAgent.enabled = true;
+    }
+
     private void OnTriggerEnter2D(Collider2D collider)
     {
         if (collider.GetComponent<Recall>() != null) //.gameObject.TryGetComponent(out Recall recall))
         {
-            if(state == PikminState.DoneGrowing)
+            if (state == PikminState.DoneGrowing)
             {
                 StartCoroutine("Sprout");
             }
