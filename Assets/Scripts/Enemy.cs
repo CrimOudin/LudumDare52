@@ -9,14 +9,22 @@ using UnityEngine.AI;
 public abstract class Enemy : MonoBehaviour
 {
     public abstract int health { get; }
+    [HideInInspector]
     public EnemyState state;
+    [HideInInspector]
+    public GameObject currentAggroTarget;
+    [HideInInspector]
+    public List<GameObject> attackableThings = new List<GameObject>();
+    [HideInInspector]
+    public bool returnAfterAttack = false; //if you deaggro mid attack, finish the attack first, then use this to return
+
+
     public EnemyAttackInfo attackInfo;
     public EnemyPatrolInfo patrolInfo;
-    public GameObject currentAggroTarget;
-    public List<GameObject> attackableThings = new List<GameObject>();
     public bool tunnelVision = false;
-    public bool canGiveMoveCommand = true;
-    public bool returnAfterAttack = false;
+    public bool stationary;
+
+
 
     public abstract void Attack();
 
@@ -98,24 +106,20 @@ public abstract class Enemy : MonoBehaviour
             returnAfterAttack = true;
 
         currentAggroTarget = null;
+        attackInfo.currentCooldown = 0;
     }
 
 
     public virtual bool MoveTo(Vector2 loc)
     {
-        if (canGiveMoveCommand)
+        if (!stationary)
         {
-            //StartCoroutine(CommandWasIssued());
-            Vector2 test = loc - (Vector2)transform.position;
-            if (test.magnitude < 20)
-                test = test * 20 / test.magnitude;
-
+            Vector2 delta = loc - (Vector2)transform.position;
             float percent = 1;
-            while (percent > 0 && !GetComponent<NavMeshAgent>().SetDestination((Vector2)transform.position + (test * percent)))//new Vector3(loc.x, loc.y, transform.position.z)))
+
+            while (percent > 0 && !GetComponent<NavMeshAgent>().SetDestination((Vector2)transform.position + (delta * percent)))//new Vector3(loc.x, loc.y, transform.position.z)))
             {
                 percent -= 0.2f;
-                Vector2 a = (Vector2)currentAggroTarget.transform.position;
-                Vector2 b = (Vector2)transform.position + (test * percent);
             }
 
             TurnTo(loc);
@@ -190,14 +194,6 @@ public abstract class Enemy : MonoBehaviour
         }
 
     }
-
-    private IEnumerator CommandWasIssued()
-    {
-        canGiveMoveCommand = false;
-        yield return new WaitForSeconds(1f);
-        canGiveMoveCommand = true;
-        yield break;
-    }
 }
 
 public enum EnemyState
@@ -214,10 +210,13 @@ public class EnemyAttackInfo
     public float attackRange; //how far away you can attack
     public float attackCooldown;
 
+    [HideInInspector]
     public AttackState state; //to know what your currentCooldown is tracking (winduptime, attackCooldown, etc)
+    [HideInInspector]
     public float currentCooldown; //if you're on cooldown, how long you've been waiting 
 
     public float attackWindupTime; //time the attack is telegraphed before it actually attacks (to give you time to react)
+    public float attackDelay; //Time from after the windup is finished to when damage is actually done
     public float attackDuration;
 
     public GameObject attackGO; //the thing that says where the attack will be, and has the collider for the damage, and animator
